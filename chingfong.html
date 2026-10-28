@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ChingFong Monitoring — Bojonegoro</title>
+<style>
+body { margin:0; font-family:Arial, sans-serif; background:#f3f4f6; }
+.topbar {
+    background:#1f2937; color:white; padding:15px;
+    display:flex; align-items:center;
+    position:fixed; top:0; left:0; width:100%; z-index:1000;
+    box-sizing:border-box;
+}
+.menu-btn { font-size:28px; cursor:pointer; margin-right:15px; }
+.sidebar {
+    height:100%; width:250px; position:fixed;
+    top:0; left:-250px; background:#111827;
+    transition:0.3s; padding-top:60px; z-index:999;
+}
+.sidebar a { display:block; color:white; padding:15px 20px; text-decoration:none; }
+.sidebar a:hover { background:#374151; }
+.sidebar a.active { background:#3b82f6; }
+.main { padding:80px 24px 24px 24px; }
+
+.kpi-grid {
+    display:grid;
+    grid-template-columns:repeat(auto-fill, minmax(200px, 240px));
+    gap:16px;
+}
+.card {
+    background:white; border-radius:12px; padding:20px 24px;
+    box-shadow:0 1px 3px rgba(0,0,0,0.08);
+    border-top:4px solid #e5e7eb;
+}
+.card h3 {
+    margin:0 0 8px; font-size:13px; color:#6b7280; font-weight:600;
+    text-transform:uppercase; letter-spacing:0.05em;
+}
+.value { font-size:36px; font-weight:700; color:#1f2937; line-height:1.1; }
+.value.loading { font-size:20px; color:#9ca3af; }
+.card-date { font-size:11px; color:#9ca3af; margin-top:6px; }
+
+.sec-title {
+    font-size:13px; font-weight:700; color:#374151;
+    text-transform:uppercase; letter-spacing:0.05em;
+    margin:28px 0 12px;
+    display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+}
+
+.date-filter-bar {
+    display:flex; align-items:center; gap:8px; flex-wrap:wrap;
+    background:white; border-radius:10px; padding:10px 16px;
+    box-shadow:0 1px 3px rgba(0,0,0,0.07); margin-bottom:16px;
+}
+.date-filter-bar label {
+    font-size:12px; color:#6b7280; font-weight:600;
+    text-transform:uppercase; letter-spacing:0.04em;
+}
+.date-filter-bar input[type=date], .date-filter-bar select {
+    padding:6px 10px; border:1px solid #d1d5db; border-radius:7px;
+    font-size:13px; color:#1f2937; cursor:pointer; font-family:inherit;
+}
+.date-filter-bar input[type=date]:focus, .date-filter-bar select:focus {
+    outline:none; border-color:#6366f1; box-shadow:0 0 0 2px #e0e7ff;
+}
+.date-filter-bar .sep { color:#9ca3af; font-size:12px; }
+.btn-today {
+    background:#f3f4f6; color:#374151; border:1px solid #d1d5db;
+    padding:6px 12px; border-radius:7px; cursor:pointer; font-size:12px; font-weight:600;
+}
+.btn-today:hover { background:#e5e7eb; }
+.filter-info { font-size:11px; color:#9ca3af; margin-left:4px; }
+
+.btn-form-link {
+    background:#6366f1; color:white; border:none; text-decoration:none;
+    padding:7px 14px; border-radius:7px; font-size:12px; font-weight:600;
+    display:inline-flex; align-items:center; gap:6px;
+}
+.btn-form-link:hover { background:#4f46e5; }
+
+.card-wide {
+    background:white; border-radius:12px; padding:20px 24px;
+    box-shadow:0 1px 3px rgba(0,0,0,0.08);
+    border-top:4px solid #6366f1;
+    margin-bottom:16px;
+}
+
+/* Mesin snapshot cards */
+.mesin-grid {
+    display:grid; grid-template-columns:repeat(auto-fill, minmax(260px, 1fr));
+    gap:14px;
+}
+.mesin-card {
+    background:white; border-radius:12px; padding:16px 18px;
+    box-shadow:0 1px 3px rgba(0,0,0,0.08); border-top:4px solid #10b981;
+}
+.mesin-card.empty { border-top-color:#e5e7eb; opacity:0.7; }
+.mesin-card-head {
+    display:flex; justify-content:space-between; align-items:baseline;
+    margin-bottom:6px;
+}
+.mesin-card-head h4 { margin:0; font-size:15px; color:#1f2937; }
+.mesin-card-head span { font-size:11px; color:#9ca3af; }
+.mesin-meta { font-size:11px; color:#6b7280; margin-bottom:10px; }
+.mesin-params {
+    display:grid; grid-template-columns:1fr 1fr; gap:4px 10px;
+    font-size:11.5px; color:#374151;
+}
+.mesin-params .lbl { color:#9ca3af; }
+.mesin-note {
+    margin-top:10px; padding-top:8px; border-top:1px dashed #e5e7eb;
+    font-size:11.5px; color:#b45309; background:#fffbeb; border-radius:6px; padding:6px 8px;
+}
+.mesin-empty-txt { font-size:12px; color:#9ca3af; padding:8px 0; }
+
+/* Data table */
+.tbl-scroll { overflow-x:auto; -webkit-overflow-scrolling:touch; margin-top:4px; }
+.dt-table { width:100%; border-collapse:collapse; font-size:11.5px; white-space:nowrap; }
+.dt-table th {
+    background:#f9fafb; color:#6b7280; font-weight:600; font-size:9.5px;
+    padding:8px 9px; text-align:center; border-bottom:2px solid #e5e7eb;
+    text-transform:uppercase; letter-spacing:0.02em; cursor:help;
+}
+.dt-table td { padding:7px 9px; border-bottom:1px solid #f3f4f6; text-align:center; }
+.dt-table tr:last-child td { border-bottom:none; }
+.dt-table td.txt-col { text-align:left; }
+.dt-table td.sticky-col, .dt-table th.sticky-col {
+    position:sticky; left:0; background:white; z-index:1; text-align:left; font-weight:600;
+}
+.dt-table th.sticky-col { background:#f9fafb; }
+.dt-table td.note-cell { text-align:left; color:#b45309; max-width:180px; white-space:normal; }
+.grp-hdr td {
+    background:#eef2ff; color:#4338ca; font-weight:700; font-size:10px;
+    text-transform:uppercase; letter-spacing:0.03em; text-align:left !important;
+    padding:5px 9px;
+}
+
+@media (max-width:640px) {
+    .main { padding:64px 12px 32px 12px; }
+    .topbar { padding:12px 14px; }
+    .menu-btn { font-size:24px; margin-right:12px; }
+    .date-filter-bar { padding:12px; gap:10px; }
+    .kpi-grid { grid-template-columns:1fr 1fr; gap:10px; }
+    .card { padding:14px 16px; }
+    .value { font-size:26px; }
+    .mesin-grid { grid-template-columns:1fr; }
+    .card-wide { padding:16px 4px 16px 16px; }
+}
+</style>
+</head>
+<body>
+
+<div class="sidebar" id="sidebar">
+    <a href="index.html">Dashboard Utama</a>
+    <a href="oee.html">OEE</a>
+    <a href="tonase.html">Tonase</a>
+    <a href="waste.html">Waste</a>
+    <a href="cost-material.html">Cost Material</a>
+    <a href="improvement-monitoring.html">Improvement Monitoring</a>
+    <a href="smartway.html" style="margin-top:20px; border-top:1px solid #374151;">🛠️ Smart Way</a>
+    <a href="baopack.html">📦 Baopack</a>
+    <a href="chingfong.html">⚙️ ChingFong</a>
+    <a href="import-extruder.html">📤 Import Extruder</a>
+    <a href="settings.html">⚙️ Settings</a>
+</div>
+
+<div class="topbar">
+    <span class="menu-btn" onclick="toggleMenu()">☰</span>
+    <h2 style="margin:0;">ChingFong Monitoring — Gedung 6</h2>
+</div>
+
+<div class="main">
+
+    <div class="date-filter-bar">
+        <label>📅 Dari</label>
+        <input type="date" id="filter-date-start" onchange="gantiFilter()">
+        <span class="sep">—</span>
+        <label>Sampai</label>
+        <input type="date" id="filter-date-end" onchange="gantiFilter()">
+        <button class="btn-today" onclick="keTanggalTerakhir()">⟳ Terbaru</button>
+
+        <label style="margin-left:8px;">Mesin</label>
+        <select id="filter-mesin" onchange="gantiFilter()">
+            <option value="">Semua Mesin</option>
+        </select>
+
+        <label>Shift</label>
+        <select id="filter-shift" onchange="gantiFilter()">
+            <option value="">Semua Shift</option>
+            <option value="1">Shift 1</option>
+            <option value="2">Shift 2</option>
+            <option value="3">Shift 3</option>
+        </select>
+
+        <span class="filter-info" id="filter-info"></span>
+
+        <span style="margin-left:auto; display:flex; gap:8px;">
+            <button class="btn-form-link" id="btn-export" style="background:#16a34a; border:none;" onclick="exportExcel()">📊 Export Excel</button>
+            <a class="btn-form-link" href="chingfong-form.html" target="_blank">📝 Buka Form Input</a>
+        </span>
+    </div>
+
+    <div class="sec-title" style="margin-top:0;">Ringkasan <span id="title-date-summary" style="color:#9ca3af; font-weight:400; text-transform:none;"></span></div>
+    <div class="kpi-grid" style="margin-bottom:20px;">
+        <div class="card" style="border-top-color:#6366f1;">
+            <h3>Total Input</h3>
+            <div class="value loading" id="val-total-input">...</div>
+            <div class="card-date" id="date-summary"></div>
+        </div>
+        <div class="card" style="border-top-color:#10b981;">
+            <h3>Mesin Reporting</h3>
+            <div class="value loading" id="val-mesin-reporting">...</div>
+            <div class="card-date">dari <span id="val-mesin-total">14</span> mesin</div>
+        </div>
+        <div class="card" style="border-top-color:#f59e0b;">
+            <h3>Perubahan Parameter</h3>
+            <div class="value loading" id="val-catatan-count">...</div>
+            <div class="card-date">entri dengan catatan</div>
+        </div>
+    </div>
+
+    <div class="sec-title">Setting Terakhir per Mesin <span id="title-date-mesin" style="color:#9ca3af; font-weight:400; text-transform:none;"></span></div>
+    <div class="mesin-grid" id="mesin-cards-container" style="margin-bottom:20px;">
+        <div style="grid-column:1/-1; text-align:center; color:#9ca3af; padding:20px;">Memuat data...</div>
+    </div>
+
+    <div class="sec-title">Riwayat Input Parameter <span id="title-date-table" style="color:#9ca3af; font-weight:400; text-transform:none;"></span></div>
+    <div class="card-wide">
+        <div class="tbl-scroll">
+        <table class="dt-table">
+            <thead>
+                <tr>
+                    <th class="sticky-col">Tanggal</th>
+                    <th title="Waktu operator submit data">Waktu</th>
+                    <th>Shift</th>
+                    <th>Mesin</th>
+                    <th>Operator</th>
+                    <th>SKU</th>
+                    <th title="Horizontal Seal Temp Front (°C)">HS Front °C</th>
+                    <th title="Horizontal Seal Temp Back (°C)">HS Back °C</th>
+                    <th title="Vertical Seal Temp (°C)">VS °C</th>
+                    <th title="Bag Length (mm)">Bag Len mm</th>
+                    <th title="Film Transport Delay (Sec)">Film Trans Delay s</th>
+                    <th title="Endseal Delay (Sec)">Endseal Delay s</th>
+                    <th title="Center Seal Delay (Sec)">Center Seal Delay s</th>
+                    <th title="Cutter Delay (Sec)">Cutter Delay s</th>
+                    <th title="Speed (Bag/Min)">Speed b/min</th>
+                    <th title="Servo Frequency">Servo Freq</th>
+                    <th title="Endseal Time (Sec)">Endseal Time s</th>
+                    <th title="Cutting Time (Sec)">Cutting Time s</th>
+                    <th title="Strip Bag">Strip Bag</th>
+                    <th title="Gas Flush Delay (Sec)">Gas Flush Delay s</th>
+                    <th title="Holding Up and Down Delay (Sec)">Hold UpDown Delay s</th>
+                    <th title="Pouring Delay (Sec)">Pouring Delay s</th>
+                    <th title="Print Delay (Sec)">Print Delay s</th>
+                    <th title="Eye Mark Offset">Eye Mark Offset</th>
+                    <th title="Gas Flush Time (Sec)">Gas Flush Time s</th>
+                    <th title="Holding Up and Down Time (Sec)">Hold UpDown Time s</th>
+                    <th title="Pouring Time (Sec)">Pouring Time s</th>
+                    <th title="Print Time (Sec)">Print Time s</th>
+                    <th title="Film Pull Pulse (Hz)">Film Pull Pulse Hz</th>
+                    <th title="Center Seal Length (mm)">Center Seal Len mm</th>
+                    <th title="Horiseal Start (mm)">Horiseal Start mm</th>
+                    <th title="Horiseal End (mm)">Horiseal End mm</th>
+                    <th title="Hori Svar Frequency (Hz)">Hori Svar Freq Hz</th>
+                    <th title="Filling (T)">Filling T</th>
+                    <th title="Filling Signal Delay (Sec)">Fill Sig Delay s</th>
+                    <th title="Angle Delay (Sec)">Angle Delay s</th>
+                    <th title="Angle Time (Sec)">Angle Time s</th>
+                    <th title="Encoder Proportion">Encoder Prop</th>
+                    <th>Catatan</th>
+                </tr>
+            </thead>
+            <tbody id="tbl-data-body">
+                <tr><td colspan="39" style="text-align:center; color:#9ca3af; padding:20px;">Memuat data...</td></tr>
+            </tbody>
+        </table>
+        </div>
+    </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+const SUPABASE_URL = 'https://bmnhtxalfsfaefacgtpm.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_VItBKenz-q2sYz7MsibODA_nYtLXv9Q';
+const { createClient } = supabase;
+const db = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+const GEDUNG_NAME = 'Gedung 6';
+const ALL_MESIN = ['CF 01', 'CF 02', 'CF 19', 'CF 20', 'CF 04', 'CF 12', 'CF 08', 'CF 17', 'CF 05', 'CF 13', 'CF 06', 'CF 14', 'CF 16', 'CF 15'];
+
+let startDate = null, endDate = null, lastAvailableDate = null;
+
+function toggleMenu() {
+    const s = document.getElementById('sidebar');
+    s.style.left = s.style.left === '0px' ? '-250px' : '0px';
+}
+
+function fmtDate(d) {
+    if (!d) return '';
+    try { return new Date(d + 'T00:00:00').toLocaleDateString('id-ID', { day:'2-digit', month:'short', year:'numeric' }); }
+    catch { return d; }
+}
+function fmtRange(a, b) {
+    if (!a && !b) return '';
+    if (!b || a === b) return fmtDate(a);
+    return `${fmtDate(a)} — ${fmtDate(b)}`;
+}
+function fmtTime(ts) {
+    if (!ts) return '—';
+    try {
+        return new Date(ts).toLocaleTimeString('id-ID', { hour:'2-digit', minute:'2-digit', timeZone:'Asia/Jakarta' });
+    } catch { return '—'; }
+}
+function num(v, d) { return (v === null || v === undefined) ? '—' : Number(v).toFixed(d === undefined ? 1 : d); }
+
+function isiDropdownMesin() {
+    const sel = document.getElementById('filter-mesin');
+    sel.innerHTML = '<option value="">Semua Mesin</option>';
+    ALL_MESIN.forEach(m => {
+        const opt = document.createElement('option');
+        opt.value = m; opt.textContent = m;
+        sel.appendChild(opt);
+    });
+}
+
+function gantiFilter() {
+    let s = document.getElementById('filter-date-start').value;
+    let e = document.getElementById('filter-date-end').value;
+    if (!s && !e) return;
+    if (s && !e) e = s;
+    if (e && !s) s = e;
+    if (s > e) { const tmp = s; s = e; e = tmp; }
+    startDate = s; endDate = e;
+    document.getElementById('filter-date-start').value = s;
+    document.getElementById('filter-date-end').value = e;
+
+    const info = document.getElementById('filter-info');
+    info.textContent = (s === e && s === lastAvailableDate) ? '(data terbaru)' : (s === e ? '' : `(rentang ${daysBetween(s,e)} hari)`);
+
+    loadData();
+}
+
+function daysBetween(a, b) {
+    const d1 = new Date(a + 'T00:00:00'), d2 = new Date(b + 'T00:00:00');
+    return Math.max(1, Math.round((d2 - d1) / 86400000) + 1);
+}
+
+function keTanggalTerakhir() {
+    if (lastAvailableDate) {
+        document.getElementById('filter-date-start').value = lastAvailableDate;
+        document.getElementById('filter-date-end').value = lastAvailableDate;
+        gantiFilter();
+    }
+}
+
+async function loadData() {
+    const mesin  = document.getElementById('filter-mesin').value;
+    const shift  = document.getElementById('filter-shift').value;
+
+    let query = db.from('chingfong_shiftly').select('*')
+        .gte('tanggal', startDate).lte('tanggal', endDate)
+        .order('tanggal', { ascending: true }).order('shift', { ascending: true });
+    if (mesin)  query = query.eq('mesin', mesin);
+    if (shift)  query = query.eq('shift', parseInt(shift));
+
+    const { data: rows, error } = await query.limit(5000);
+
+    const rangeLabel = '— ' + fmtRange(startDate, endDate);
+    ['title-date-summary','title-date-mesin','title-date-table'].forEach(id => document.getElementById(id).textContent = rangeLabel);
+    document.getElementById('date-summary').textContent = fmtRange(startDate, endDate);
+
+    if (error) {
+        console.error(error);
+        document.getElementById('tbl-data-body').innerHTML =
+            '<tr><td colspan="39" style="text-align:center; color:#dc2626; padding:20px;">Gagal memuat data. Pastikan tabel chingfong_shiftly sudah dibuat di Supabase.</td></tr>';
+        renderMesinCards([]);
+        setKpi('val-total-input', 0); setKpi('val-mesin-reporting', 0); setKpi('val-catatan-count', 0);
+        return;
+    }
+
+    const list = rows || [];
+    setKpi('val-total-input', list.length);
+    setKpi('val-mesin-reporting', new Set(list.map(r => r.mesin)).size);
+    setKpi('val-catatan-count', list.filter(r => r.catatan && r.catatan.trim() !== '').length);
+    document.getElementById('val-mesin-total').textContent = ALL_MESIN.length;
+
+    renderMesinCards(list);
+    renderTable(list);
+}
+
+function setKpi(id, val) {
+    const el = document.getElementById(id);
+    el.textContent = val;
+    el.className = 'value';
+}
+
+function renderMesinCards(rows) {
+    const container = document.getElementById('mesin-cards-container');
+
+    const latestByMesin = {};
+    rows.forEach(r => { latestByMesin[r.mesin] = r; });
+
+    container.innerHTML = '';
+    ALL_MESIN.forEach(m => {
+        const r = latestByMesin[m];
+        const card = document.createElement('div');
+        card.className = 'mesin-card' + (r ? '' : ' empty');
+        if (!r) {
+            card.innerHTML = `
+                <div class="mesin-card-head"><h4>${m}</h4></div>
+                <div class="mesin-empty-txt">Belum ada data pada rentang ini</div>`;
+            container.appendChild(card);
+            return;
+        }
+        card.innerHTML = `
+            <div class="mesin-card-head">
+                <h4>${m}</h4>
+                <span>Shift ${r.shift} · ${fmtDate(r.tanggal)} ${fmtTime(r.waktu_submit)}</span>
+            </div>
+            <div class="mesin-meta">👤 ${r.operator || '—'}${r.sku ? ' · SKU: ' + r.sku : ''}</div>
+            <div class="mesin-params">
+                <div><span class="lbl">HS Front:</span> ${num(r.horizontal_seal_temp_front)} °C</div>
+                <div><span class="lbl">HS Back:</span> ${num(r.horizontal_seal_temp_back)} °C</div>
+                <div><span class="lbl">VS:</span> ${num(r.vertical_seal_temp)} °C</div>
+                <div><span class="lbl">Speed:</span> ${num(r.speed)} b/min</div>
+                <div><span class="lbl">Bag Len:</span> ${num(r.bag_length)} mm</div>
+                <div><span class="lbl">Filling:</span> ${num(r.filling)} T</div>
+            </div>
+            ${r.catatan ? `<div class="mesin-note">📝 ${r.catatan}</div>` : ''}
+        `;
+        container.appendChild(card);
+    });
+}
+
+function renderTable(rows) {
+    const tbody = document.getElementById('tbl-data-body');
+    if (!rows.length) {
+        tbody.innerHTML = '<tr><td colspan="39" style="text-align:center; color:#9ca3af; padding:20px;">Belum ada data pada rentang/filter ini</td></tr>';
+        return;
+    }
+    const rowsDesc = [...rows].reverse();
+    tbody.innerHTML = rowsDesc.map(r => `
+        <tr>
+            <td class="sticky-col">${fmtDate(r.tanggal)}</td>
+            <td>${fmtTime(r.waktu_submit)}</td>
+            <td>${r.shift}</td>
+            <td class="txt-col">${r.mesin}</td>
+            <td class="txt-col">${r.operator || '—'}</td>
+            <td class="txt-col">${r.sku || '—'}</td>
+            <td>${num(r.horizontal_seal_temp_front)}</td>
+            <td>${num(r.horizontal_seal_temp_back)}</td>
+            <td>${num(r.vertical_seal_temp)}</td>
+            <td>${num(r.bag_length)}</td>
+            <td>${num(r.film_transport_delay)}</td>
+            <td>${num(r.endseal_delay)}</td>
+            <td>${num(r.center_seal_delay)}</td>
+            <td>${num(r.cutter_delay)}</td>
+            <td>${num(r.speed)}</td>
+            <td>${num(r.servo_frequency, 2)}</td>
+            <td>${num(r.endseal_time)}</td>
+            <td>${num(r.cutting_time)}</td>
+            <td>${num(r.strip_bag, 2)}</td>
+            <td>${num(r.gas_flush_delay)}</td>
+            <td>${num(r.holding_updown_delay)}</td>
+            <td>${num(r.pouring_delay)}</td>
+            <td>${num(r.print_delay)}</td>
+            <td>${num(r.eye_mark_offset, 2)}</td>
+            <td>${num(r.gas_flush_time)}</td>
+            <td>${num(r.holding_updown_time)}</td>
+            <td>${num(r.pouring_time)}</td>
+            <td>${num(r.print_time)}</td>
+            <td>${num(r.film_pull_pulse)}</td>
+            <td>${num(r.center_seal_length)}</td>
+            <td>${num(r.horiseal_start)}</td>
+            <td>${num(r.horiseal_end)}</td>
+            <td>${num(r.hori_svar_frequency)}</td>
+            <td>${num(r.filling)}</td>
+            <td>${num(r.filling_signal_delay)}</td>
+            <td>${num(r.angle_delay)}</td>
+            <td>${num(r.angle_time)}</td>
+            <td>${num(r.encoder_proportion, 2)}</td>
+            <td class="note-cell">${r.catatan || ''}</td>
+        </tr>
+    `).join('');
+}
+
+const EXPORT_HEADERS = [
+    'Tanggal','Waktu','Shift','Mesin','Gedung','Operator','SKU',
+    'Horizontal Seal Temp Front (dC)','Horizontal Seal Temp Back (dC)','Vertical Seal Temp (dC)',
+    'Bag Length (MM)','Film Transport Delay (S)','Endseal Delay (S)','Center Seal Delay (S)','Cutter Delay (S)',
+    'Speed (B/MIN)','Servo Frequency','Endseal Time (S)','Cutting Time (S)',
+    'Strip Bag','Gas Flush Delay (S)','Holding Up and Down Delay (S)','Pouring Delay (S)','Print Delay (S)',
+    'Eye Mark Offset','Gas Flush Time (S)','Holding Up and Down Time (S)','Pouring Time (S)','Print Time (S)',
+    'Film Pull Pulse (HZ)','Center Seal Length (MM)','Horiseal Start (MM)','Horiseal End (MM)','Hori Svar Frequency (HZ)',
+    'Filling (T)','Filling Signal Delay (S)','Angle Delay (S)','Angle Time (S)','Encoder Proportion',
+    'Catatan',
+];
+
+function rowToExportArray(r) {
+    return [
+        r.tanggal, fmtTime(r.waktu_submit), r.shift, r.mesin, GEDUNG_NAME, r.operator || '', r.sku || '',
+        r.horizontal_seal_temp_front, r.horizontal_seal_temp_back, r.vertical_seal_temp,
+        r.bag_length, r.film_transport_delay, r.endseal_delay, r.center_seal_delay, r.cutter_delay,
+        r.speed, r.servo_frequency, r.endseal_time, r.cutting_time,
+        r.strip_bag, r.gas_flush_delay, r.holding_updown_delay, r.pouring_delay, r.print_delay,
+        r.eye_mark_offset, r.gas_flush_time, r.holding_updown_time, r.pouring_time, r.print_time,
+        r.film_pull_pulse, r.center_seal_length, r.horiseal_start, r.horiseal_end, r.hori_svar_frequency,
+        r.filling, r.filling_signal_delay, r.angle_delay, r.angle_time, r.encoder_proportion,
+        r.catatan || '',
+    ];
+}
+
+async function exportExcel() {
+    const btn = document.getElementById('btn-export');
+    btn.disabled = true;
+    const teksAsli = btn.textContent;
+    btn.textContent = '⏳ Menyiapkan...';
+
+    try {
+        const { data: rows, error } = await db
+            .from('chingfong_shiftly')
+            .select('*')
+            .gte('tanggal', startDate).lte('tanggal', endDate)
+            .order('tanggal', { ascending: true })
+            .order('shift', { ascending: true })
+            .order('mesin', { ascending: true })
+            .limit(10000);
+
+        if (error) throw error;
+
+        if (!rows || rows.length === 0) {
+            alert('Tidak ada data pada rentang tanggal ini untuk di-export.');
+            return;
+        }
+
+        const aoa = [EXPORT_HEADERS, ...rows.map(rowToExportArray)];
+        const wb = XLSX.utils.book_new();
+        const ws = XLSX.utils.aoa_to_sheet(aoa);
+        ws['!cols'] = EXPORT_HEADERS.map(() => ({ wch: 14 }));
+        XLSX.utils.book_append_sheet(wb, ws, 'Gedung 6');
+
+        const labelTanggal = startDate === endDate ? startDate : `${startDate}_sd_${endDate}`;
+        XLSX.writeFile(wb, `ChingFong_Parameter_${labelTanggal}.xlsx`);
+    } catch (e) {
+        console.error(e);
+        alert('Gagal export: ' + (e.message || e));
+    } finally {
+        btn.disabled = false;
+        btn.textContent = teksAsli;
+    }
+}
+
+async function init() {
+    isiDropdownMesin();
+
+    const { data: lastRow } = await db
+        .from('chingfong_shiftly')
+        .select('tanggal')
+        .order('tanggal', { ascending: false })
+        .limit(1)
+        .single();
+
+    if (lastRow && lastRow.tanggal) {
+        lastAvailableDate = lastRow.tanggal;
+        startDate = lastAvailableDate;
+        endDate = lastAvailableDate;
+        document.getElementById('filter-date-start').value = lastAvailableDate;
+        document.getElementById('filter-date-end').value = lastAvailableDate;
+        document.getElementById('filter-info').textContent = '(data terbaru)';
+    } else {
+        const today = new Date().toISOString().slice(0,10);
+        startDate = today; endDate = today;
+        document.getElementById('filter-date-start').value = today;
+        document.getElementById('filter-date-end').value = today;
+    }
+
+    loadData();
+}
+
+init();
+</script>
+</body>
+</html>

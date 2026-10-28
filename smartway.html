@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smart Way Monitoring — Bojonegoro</title>
+<style>
+body { margin:0; font-family:Arial, sans-serif; background:#f3f4f6; }
+.topbar {
+    background:#1f2937; color:white; padding:15px;
+    display:flex; align-items:center;
+    position:fixed; top:0; left:0; width:100%; z-index:1000;
+    box-sizing:border-box;
+}
+.menu-btn { font-size:28px; cursor:pointer; margin-right:15px; }
+.sidebar {
+    height:100%; width:250px; position:fixed;
+    top:0; left:-250px; background:#111827;
+    transition:0.3s; padding-top:60px; z-index:999;
+}
+.sidebar a { display:block; color:white; padding:15px 20px; text-decoration:none; }
+.sidebar a:hover { background:#374151; }
+.sidebar a.active { background:#3b82f6; }
+.main { padding:80px 24px 24px 24px; }
+
+.kpi-grid {
+    display:grid;
+    grid-template-columns:repeat(auto-fill, minmax(200px, 240px));
+    gap:16px;
+}
+.card {
+    background:white; border-radius:12px; padding:20px 24px;
+    box-shadow:0 1px 3px rgba(0,0,0,0.08);
+    border-top:4px solid #e5e7eb;
+}
+.card h3 {
+    margin:0 0 8px; font-size:13px; color:#6b7280; font-weight:600;
+    text-transform:uppercase; letter-spacing:0.05em;
+}
+.value { font-size:36px; font-weight:700; color:#1f2937; line-height:1.1; }
+.value.loading { font-size:20px; color:#9ca3af; }
+.card-date { font-size:11px; color:#9ca3af; margin-top:6px; }
+.kpi-unit { font-size:16px; font-weight:400; color:#6b7280; margin-left:2px; }
+
+.sec-title {
+    font-size:13px; font-weight:700; color:#374151;
+    text-transform:uppercase; letter-spacing:0.05em;
+    margin:28px 0 12px;
+    display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+}
+
+.date-filter-bar {
+    display:flex; align-items:center; gap:8px; flex-wrap:wrap;
+    background:white; border-radius:10px; padding:10px 16px;
+    box-shadow:0 1px 3px rgba(0,0,0,0.07); margin-bottom:16px;
+}
+.date-filter-bar label {
+    font-size:12px; color:#6b7280; font-weight:600;
+    text-transform:uppercase; letter-spacing:0.04em;
+}
+.date-filter-bar input[type=date], .date-filter-bar select {
+    padding:6px 10px; border:1px solid #d1d5db; border-radius:7px;
+    font-size:13px; color:#1f2937; cursor:pointer; font-family:inherit;
+}
+.date-filter-bar input[type=date]:focus, .date-filter-bar select:focus {
+    outline:none; border-color:#6366f1; box-shadow:0 0 0 2px #e0e7ff;
+}
+.date-filter-bar .sep { color:#9ca3af; font-size:12px; }
+.btn-today {
+    background:#f3f4f6; color:#374151; border:1px solid #d1d5db;
+    padding:6px 12px; border-radius:7px; cursor:pointer; font-size:12px; font-weight:600;
+}
+.btn-today:hover { background:#e5e7eb; }
+.filter-info { font-size:11px; color:#9ca3af; margin-left:4px; }
+
+.btn-form-link {
+    background:#6366f1; color:white; border:none; text-decoration:none;
+    padding:7px 14px; border-radius:7px; font-size:12px; font-weight:600;
+    display:inline-flex; align-items:center; gap:6px;
+}
+.btn-form-link:hover { background:#4f46e5; }
+
+.card-wide {
+    background:white; border-radius:12px; padding:20px 24px;
+    box-shadow:0 1px 3px rgba(0,0,0,0.08);
+    border-top:4px solid #6366f1;
+    margin-bottom:16px;
+}
+
+/* Mesin snapshot cards */
+.mesin-grid {
+    display:grid; grid-template-columns:repeat(auto-fill, minmax(260px, 1fr));
+    gap:14px;
+}
+.mesin-card {
+    background:white; border-radius:12px; padding:16px 18px;
+    box-shadow:0 1px 3px rgba(0,0,0,0.08); border-top:4px solid #10b981;
+}
+.mesin-card.empty { border-top-color:#e5e7eb; opacity:0.7; }
+.mesin-card-head {
+    display:flex; justify-content:space-between; align-items:baseline;
+    margin-bottom:6px;
+}
+.mesin-card-head h4 { margin:0; font-size:15px; color:#1f2937; }
+.mesin-card-head span { font-size:11px; color:#9ca3af; }
+.mesin-meta { font-size:11px; color:#6b7280; margin-bottom:10px; }
+.mesin-params {
+    display:grid; grid-template-columns:1fr 1fr; gap:4px 10px;
+    font-size:11.5px; color:#374151;
+}
+.mesin-params .lbl { color:#9ca3af; }
+.mesin-note {
+    margin-top:10px; padding-top:8px; border-top:1px dashed #e5e7eb;
+    font-size:11.5px; color:#b45309; background:#fffbeb; border-radius:6px; padding:6px 8px;
+}
+.mesin-empty-txt { font-size:12px; color:#9ca3af; padding:8px 0; }
+
+/* Data table */
+.tbl-scroll { overflow-x:auto; -webkit-overflow-scrolling:touch; margin-top:4px; }
+.dt-table { width:100%; border-collapse:collapse; font-size:11.5px; white-space:nowrap; }
+.dt-table th {
+    background:#f9fafb; color:#6b7280; font-weight:600; font-size:9.5px;
+    padding:8px 9px; text-align:center; border-bottom:2px solid #e5e7eb;
+    text-transform:uppercase; letter-spacing:0.02em; cursor:help;
+}
+.dt-table td { padding:7px 9px; border-bottom:1px solid #f3f4f6; text-align:center; }
+.dt-table tr:last-child td { border-bottom:none; }
+.dt-table td.txt-col { text-align:left; }
+.dt-table td.sticky-col, .dt-table th.sticky-col {
+    position:sticky; left:0; background:white; z-index:1; text-align:left; font-weight:600;
+}
+.dt-table th.sticky-col { background:#f9fafb; }
+.dt-table td.note-cell { text-align:left; color:#b45309; max-width:180px; white-space:normal; }
+
+@media (max-width:640px) {
+    .main { padding:64px 12px 32px 12px; }
+    .topbar { padding:12px 14px; }
+    .menu-btn { font-size:24px; margin-right:12px; }
+    .date-filter-bar { padding:12px; gap:10px; }
+    .kpi-grid { grid-template-columns:1fr 1fr; gap:10px; }
+    .card { padding:14px 16px; }
+    .value { font-size:26px; }
+    .mesin-grid { grid-template-columns:1fr; }
+    .card-wide { padding:16px 4px 16px 16px; }
+}
+</style>
+</head>
+<body>
+
+<div class="sidebar" id="sidebar">
+    <a href="index.html">Dashboard Utama</a>
+    <a href="oee.html">OEE</a>
+    <a href="tonase.html">Tonase</a>
+    <a href="waste.html">Waste</a>
+    <a href="cost-material.html">Cost Material</a>
+    <a href="improvement-monitoring.html">Improvement Monitoring</a>
+    <a href="smartway.html" style="margin-top:20px; border-top:1px solid #374151;">🛠️ Smart Way</a>
+    <a href="baopack.html">📦 Baopack</a>
+    <a href="chingfong.html">⚙️ ChingFong</a>
+    <a href="import-extruder.html">📤 Import Extruder</a>
+    <a href="settings.html">⚙️ Settings</a>
+</div>
+
+
+<div class="topbar">
+    <span class="menu-btn" onclick="toggleMenu()">☰</span>
+    <h2 style="margin:0;">Smart Way Monitoring</h2>
+</div>
+
+<div class="main">
+
+    <div class="date-filter-bar">
+        <label>📅 Dari</label>
+        <input type="date" id="filter-date-start" onchange="gantiFilter()">
+        <span class="sep">—</span>
+        <label>Sampai</label>
+        <input type="date" id="filter-date-end" onchange="gantiFilter()">
+        <button class="btn-today" onclick="keTanggalTerakhir()">⟳ Terbaru</button>
+
+        <label style="margin-left:8px;">Gedung</label>
+        <select id="filter-gedung" onchange="gantiGedung()">
+            <option value="">Semua Gedung</option>
+            <option value="Gedung 7">Gedung 7</option>
+            <option value="Gedung 4">Gedung 4</option>
+        </select>
+
+        <label>Mesin</label>
+        <select id="filter-mesin" onchange="gantiFilter()">
+            <option value="">Semua Mesin</option>
+        </select>
+
+        <label>Shift</label>
+        <select id="filter-shift" onchange="gantiFilter()">
+            <option value="">Semua Shift</option>
+            <option value="1">Shift 1</option>
+            <option value="2">Shift 2</option>
+            <option value="3">Shift 3</option>
+        </select>
+
+        <span class="filter-info" id="filter-info"></span>
+
+        <span style="margin-left:auto; display:flex; gap:8px;">
+            <button class="btn-form-link" id="btn-export" style="background:#16a34a; border:none;" onclick="exportExcel()">📊 Export Excel</button>
+            <a class="btn-form-link" href="smartway-form.html" target="_blank">📝 Buka Form Input</a>
+        </span>
+    </div>
+
+    <div class="sec-title" style="margin-top:0;">Ringkasan <span id="title-date-summary" style="color:#9ca3af; font-weight:400; text-transform:none;"></span></div>
+    <div class="kpi-grid" style="margin-bottom:20px;">
+        <div class="card" style="border-top-color:#6366f1;">
+            <h3>Total Input</h3>
+            <div class="value loading" id="val-total-input">...</div>
+            <div class="card-date" id="date-summary"></div>
+        </div>
+        <div class="card" style="border-top-color:#10b981;">
+            <h3>Mesin Reporting</h3>
+            <div class="value loading" id="val-mesin-reporting">...</div>
+            <div class="card-date">dari <span id="val-mesin-total">14</span> mesin</div>
+        </div>
+        <div class="card" style="border-top-color:#f59e0b;">
+            <h3>Perubahan Parameter</h3>
+            <div class="value loading" id="val-catatan-count">...</div>
+            <div class="card-date">entri dengan catatan</div>
+        </div>
+    </div>
+
+    <div class="sec-title">Setting Terakhir per Mesin <span id="title-date-mesin" style="color:#9ca3af; font-weight:400; text-transform:none;"></span></div>
+    <div class="mesin-grid" id="mesin-cards-container" style="margin-bottom:20px;">
+        <div style="grid-column:1/-1; text-align:center; color:#9ca3af; padding:20px;">Memuat data...</div>
+    </div>
+
+    <div class="sec-title">Riwayat Input Parameter <span id="title-date-table" style="color:#9ca3af; font-weight:400; text-transform:none;"></span></div>
+    <div class="card-wide">
+        <div class="tbl-scroll">
+        <table class="dt-table">
+            <thead>
+                <tr>
+                    <th class="sticky-col">Tanggal</th>
+                    <th title="Waktu operator submit data">Waktu</th>
+                    <th>Shift</th>
+                    <th>Mesin</th>
+                    <th>Gedung</th>
+                    <th>Operator</th>
+                    <th>SKU</th>
+                    <th title="Temperature Horizontal Seal 1 (°C)">HS1 °C</th>
+                    <th title="Temperature Horizontal Seal 2 (°C)">HS2 °C</th>
+                    <th title="Temperature Vertical Seal (°C)">VS °C</th>
+                    <th title="Bag Length Specification (mm)">Bag Len mm</th>
+                    <th title="Color Code Offside (mm)">Color Code mm</th>
+                    <th title="First Packet is Delayed (Sec)">1st Pkt Delay s</th>
+                    <th title="Hori. Seal Start Point (mm)">Hori Start mm</th>
+                    <th title="Preset Prod Speed (ppm)">Speed ppm</th>
+                    <th title="Hori Seal Time (Sec)">Hori Seal Time s</th>
+                    <th title="Signal Delay 1 (Sec)">Sig Delay 1 s</th>
+                    <th title="Signal Delay 2 (Sec)">Sig Delay 2 s</th>
+                    <th title="Hori Seal Overflow (mm)">Hori Overflow mm</th>
+                    <th title="Cutter Delay (Sec)">Cutter Delay s</th>
+                    <th title="Print Delay (Sec)">Print Delay s</th>
+                    <th title="Fill Gas Delay (Sec)">Fill Gas Delay s</th>
+                    <th title="Gusset Delay (Sec)">Gusset Delay s</th>
+                    <th title="Cutter Time (Sec)">Cutter Time s</th>
+                    <th title="Print Time (Sec)">Print Time s</th>
+                    <th title="Fill Gas Time (Sec)">Fill Gas Time s</th>
+                    <th title="Gusset Time (Sec)">Gusset Time s</th>
+                    <th title="Up and Down Travel (mm)">UpDown Travel mm</th>
+                    <th title="Pull Film Ratio 1">Pull Film 1</th>
+                    <th title="Pull Film Ratio 2">Pull Film 2</th>
+                    <th title="Up Down Synchronous Ratio">UpDown Sync</th>
+                    <th title="Verti Seal Synchronous Ratio">Verti Sync</th>
+                    <th title="Fail Pack Compensation (mm)">Fail Pack mm</th>
+                    <th title="Encoder Coefficients">Encoder Coef</th>
+                    <th title="Chain Bag Number (Bag)">Chain Bag</th>
+                    <th title="Self-Learning Forming Torque (%)">Self Learn %</th>
+                    <th>Catatan</th>
+                </tr>
+            </thead>
+            <tbody id="tbl-data-body">
+                <tr><td colspan="35" style="text-align:center; color:#9ca3af; padding:20px;">Memuat data...</td></tr>
+            </tbody>
+        </table>
+        </div>
+    </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+const SUPABASE_URL = 'https://bmnhtxalfsfaefacgtpm.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_VItBKenz-q2sYz7MsibODA_nYtLXv9Q';
+const { createClient } = supabase;
+const db = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+const MESIN_LIST = {
+    'Gedung 7': ['SW 32','SW 33','SW 34','SW 35','SW 36','SW 37','SW 38'],
+    'Gedung 4': ['SW 39','SW 40','SW 41','SW 42','SW 43','SW 44','SW 45','SW 46'],
+};
+const ALL_MESIN = Object.values(MESIN_LIST).flat();
+
+let startDate = null, endDate = null, lastAvailableDate = null;
+
+function toggleMenu() {
+    const s = document.getElementById('sidebar');
+    s.style.left = s.style.left === '0px' ? '-250px' : '0px';
+}
+
+function fmtDate(d) {
+    if (!d) return '';
+    try { return new Date(d + 'T00:00:00').toLocaleDateString('id-ID', { day:'2-digit', month:'short', year:'numeric' }); }
+    catch { return d; }
+}
+function fmtRange(a, b) {
+    if (!a && !b) return '';
+    if (!b || a === b) return fmtDate(a);
+    return `${fmtDate(a)} — ${fmtDate(b)}`;
+}
+// Format waktu submit (timestamp ISO) jadi jam:menit WIB (Asia/Jakarta)
+function fmtTime(ts) {
+    if (!ts) return '—';
+    try {
+        return new Date(ts).toLocaleTimeString('id-ID', { hour:'2-digit', minute:'2-digit', timeZone:'Asia/Jakarta' });
+    } catch { return '—'; }
+}
+function num(v, d) { return (v === null || v === undefined) ? '—' : Number(v).toFixed(d === undefined ? 1 : d); }
+
+function isiDropdownMesin() {
+    const gedung = document.getElementById('filter-gedung').value;
+    const sel = document.getElementById('filter-mesin');
+    sel.innerHTML = '<option value="">Semua Mesin</option>';
+    const list = gedung ? MESIN_LIST[gedung] : ALL_MESIN;
+    list.forEach(m => {
+        const opt = document.createElement('option');
+        opt.value = m; opt.textContent = m;
+        sel.appendChild(opt);
+    });
+}
+
+function gantiGedung() {
+    isiDropdownMesin();
+    gantiFilter();
+}
+
+function gantiFilter() {
+    let s = document.getElementById('filter-date-start').value;
+    let e = document.getElementById('filter-date-end').value;
+    if (!s && !e) return;
+    if (s && !e) e = s;
+    if (e && !s) s = e;
+    if (s > e) { const tmp = s; s = e; e = tmp; }
+    startDate = s; endDate = e;
+    document.getElementById('filter-date-start').value = s;
+    document.getElementById('filter-date-end').value = e;
+
+    const info = document.getElementById('filter-info');
+    info.textContent = (s === e && s === lastAvailableDate) ? '(data terbaru)' : (s === e ? '' : `(rentang ${daysBetween(s,e)} hari)`);
+
+    loadData();
+}
+
+function daysBetween(a, b) {
+    const d1 = new Date(a + 'T00:00:00'), d2 = new Date(b + 'T00:00:00');
+    return Math.max(1, Math.round((d2 - d1) / 86400000) + 1);
+}
+
+function keTanggalTerakhir() {
+    if (lastAvailableDate) {
+        document.getElementById('filter-date-start').value = lastAvailableDate;
+        document.getElementById('filter-date-end').value = lastAvailableDate;
+        gantiFilter();
+    }
+}
+
+async function loadData() {
+    const gedung = document.getElementById('filter-gedung').value;
+    const mesin  = document.getElementById('filter-mesin').value;
+    const shift  = document.getElementById('filter-shift').value;
+
+    let query = db.from('smartway_shiftly').select('*')
+        .gte('tanggal', startDate).lte('tanggal', endDate)
+        .order('tanggal', { ascending: true }).order('shift', { ascending: true });
+    if (gedung) query = query.eq('gedung', gedung);
+    if (mesin)  query = query.eq('mesin', mesin);
+    if (shift)  query = query.eq('shift', parseInt(shift));
+
+    const { data: rows, error } = await query.limit(5000);
+
+    const rangeLabel = '— ' + fmtRange(startDate, endDate);
+    ['title-date-summary','title-date-mesin','title-date-table'].forEach(id => document.getElementById(id).textContent = rangeLabel);
+    document.getElementById('date-summary').textContent = fmtRange(startDate, endDate);
+
+    if (error) {
+        console.error(error);
+        document.getElementById('tbl-data-body').innerHTML =
+            '<tr><td colspan="35" style="text-align:center; color:#dc2626; padding:20px;">Gagal memuat data. Pastikan tabel smartway_shiftly sudah dibuat di Supabase.</td></tr>';
+        renderMesinCards([], gedung);
+        setKpi('val-total-input', 0); setKpi('val-mesin-reporting', 0); setKpi('val-catatan-count', 0);
+        return;
+    }
+
+    const list = rows || [];
+    setKpi('val-total-input', list.length);
+    setKpi('val-mesin-reporting', new Set(list.map(r => r.mesin)).size);
+    setKpi('val-catatan-count', list.filter(r => r.catatan && r.catatan.trim() !== '').length);
+    document.getElementById('val-mesin-total').textContent = gedung ? MESIN_LIST[gedung].length : ALL_MESIN.length;
+
+    renderMesinCards(list, gedung);
+    renderTable(list);
+}
+
+function setKpi(id, val) {
+    const el = document.getElementById(id);
+    el.textContent = val;
+    el.className = 'value';
+}
+
+function renderMesinCards(rows, gedungFilter) {
+    const container = document.getElementById('mesin-cards-container');
+    const mesinDaftar = gedungFilter ? MESIN_LIST[gedungFilter] : ALL_MESIN;
+
+    // Ambil entri terakhir (tanggal + shift terbesar) per mesin dari rows (sudah urut ascending)
+    const latestByMesin = {};
+    rows.forEach(r => { latestByMesin[r.mesin] = r; });
+
+    container.innerHTML = '';
+    mesinDaftar.forEach(m => {
+        const r = latestByMesin[m];
+        const card = document.createElement('div');
+        card.className = 'mesin-card' + (r ? '' : ' empty');
+        if (!r) {
+            card.innerHTML = `
+                <div class="mesin-card-head"><h4>${m}</h4></div>
+                <div class="mesin-empty-txt">Belum ada data pada rentang ini</div>`;
+            container.appendChild(card);
+            return;
+        }
+        card.innerHTML = `
+            <div class="mesin-card-head">
+                <h4>${m}</h4>
+                <span>Shift ${r.shift} · ${fmtDate(r.tanggal)} ${fmtTime(r.waktu_submit)}</span>
+            </div>
+            <div class="mesin-meta">👤 ${r.operator || '—'}${r.sku ? ' · SKU: ' + r.sku : ''}</div>
+            <div class="mesin-params">
+                <div><span class="lbl">HS1:</span> ${num(r.temp_hs1)} °C</div>
+                <div><span class="lbl">HS2:</span> ${num(r.temp_hs2)} °C</div>
+                <div><span class="lbl">VS:</span> ${num(r.temp_vs)} °C</div>
+                <div><span class="lbl">Speed:</span> ${num(r.preset_prod_speed)} ppm</div>
+                <div><span class="lbl">Bag Len:</span> ${num(r.bag_length_spec)} mm</div>
+                <div><span class="lbl">Chain Bag:</span> ${num(r.chain_bag_number, 0)}</div>
+            </div>
+            ${r.catatan ? `<div class="mesin-note">📝 ${r.catatan}</div>` : ''}
+        `;
+        container.appendChild(card);
+    });
+}
+
+function renderTable(rows) {
+    const tbody = document.getElementById('tbl-data-body');
+    if (!rows.length) {
+        tbody.innerHTML = '<tr><td colspan="35" style="text-align:center; color:#9ca3af; padding:20px;">Belum ada data pada rentang/filter ini</td></tr>';
+        return;
+    }
+    // Terbaru di atas
+    const rowsDesc = [...rows].reverse();
+    tbody.innerHTML = rowsDesc.map(r => `
+        <tr>
+            <td class="sticky-col">${fmtDate(r.tanggal)}</td>
+            <td>${fmtTime(r.waktu_submit)}</td>
+            <td>${r.shift}</td>
+            <td class="txt-col">${r.mesin}</td>
+            <td class="txt-col">${r.gedung || '—'}</td>
+            <td class="txt-col">${r.operator || '—'}</td>
+            <td class="txt-col">${r.sku || '—'}</td>
+            <td>${num(r.temp_hs1)}</td>
+            <td>${num(r.temp_hs2)}</td>
+            <td>${num(r.temp_vs)}</td>
+            <td>${num(r.bag_length_spec)}</td>
+            <td>${num(r.color_code_offside)}</td>
+            <td>${num(r.first_packet_delay)}</td>
+            <td>${num(r.hori_seal_start_point)}</td>
+            <td>${num(r.preset_prod_speed)}</td>
+            <td>${num(r.hori_seal_time)}</td>
+            <td>${num(r.signal_delay_1)}</td>
+            <td>${num(r.signal_delay_2)}</td>
+            <td>${num(r.hori_seal_overflow)}</td>
+            <td>${num(r.cutter_delay)}</td>
+            <td>${num(r.print_delay)}</td>
+            <td>${num(r.fill_gas_delay)}</td>
+            <td>${num(r.gusset_delay)}</td>
+            <td>${num(r.cutter_time)}</td>
+            <td>${num(r.print_time)}</td>
+            <td>${num(r.fill_gas_time)}</td>
+            <td>${num(r.gusset_time)}</td>
+            <td>${num(r.up_down_travel)}</td>
+            <td>${num(r.pull_film_ratio_1, 2)}</td>
+            <td>${num(r.pull_film_ratio_2, 2)}</td>
+            <td>${num(r.up_down_sync_ratio, 2)}</td>
+            <td>${num(r.verti_seal_sync_ratio, 2)}</td>
+            <td>${num(r.fail_pack_compensation)}</td>
+            <td>${num(r.encoder_coefficients, 2)}</td>
+            <td>${num(r.chain_bag_number, 0)}</td>
+            <td>${num(r.self_learning_torque)}</td>
+            <td class="note-cell">${r.catatan || ''}</td>
+        </tr>
+    `).join('');
+}
+
+// ── Export Excel: 1 file, sheet terpisah per Gedung ──
+const EXPORT_HEADERS = [
+    'Tanggal','Waktu','Shift','Mesin','Gedung','Operator','SKU',
+    'Temp Horizontal Seal 1 (°C)','Temp Horizontal Seal 2 (°C)','Temp Vertical Seal (°C)',
+    'Bag Length Specification (mm)','Color Code Offside (mm)','First Packet is Delayed (Sec)',
+    'Hori. Seal Start Point (mm)','Preset Prod Speed (ppm)','Hori Seal Time (Sec)',
+    'Signal Delay 1 (Sec)','Signal Delay 2 (Sec)','Hori Seal Overflow (mm)',
+    'Cutter Delay (Sec)','Print Delay (Sec)','Fill Gas Delay (Sec)','Gusset Delay (Sec)',
+    'Cutter Time (Sec)','Print Time (Sec)','Fill Gas Time (Sec)','Gusset Time (Sec)',
+    'Up and Down Travel (mm)','Pull Film Ratio 1','Pull Film Ratio 2',
+    'Up Down Synchronous Ratio','Verti Seal Synchronous Ratio','Fail Pack Compensation (mm)',
+    'Encoder Coefficients','Chain Bag Number (Bag)','Self-Learning Forming Torque (%)',
+    'Catatan',
+];
+
+function rowToExportArray(r) {
+    return [
+        r.tanggal, fmtTime(r.waktu_submit), r.shift, r.mesin, r.gedung || '', r.operator || '', r.sku || '',
+        r.temp_hs1, r.temp_hs2, r.temp_vs,
+        r.bag_length_spec, r.color_code_offside, r.first_packet_delay,
+        r.hori_seal_start_point, r.preset_prod_speed, r.hori_seal_time,
+        r.signal_delay_1, r.signal_delay_2, r.hori_seal_overflow,
+        r.cutter_delay, r.print_delay, r.fill_gas_delay, r.gusset_delay,
+        r.cutter_time, r.print_time, r.fill_gas_time, r.gusset_time,
+        r.up_down_travel, r.pull_film_ratio_1, r.pull_film_ratio_2,
+        r.up_down_sync_ratio, r.verti_seal_sync_ratio, r.fail_pack_compensation,
+        r.encoder_coefficients, r.chain_bag_number, r.self_learning_torque,
+        r.catatan || '',
+    ];
+}
+
+function sheetNameSafe(name) {
+    // Nama sheet Excel maksimal 31 karakter & tidak boleh ada karakter : \ / ? * [ ]
+    return name.replace(/[:\\\/\?\*\[\]]/g, '-').substring(0, 31);
+}
+
+async function exportExcel() {
+    const btn = document.getElementById('btn-export');
+    btn.disabled = true;
+    const teksAsli = btn.textContent;
+    btn.textContent = '⏳ Menyiapkan...';
+
+    try {
+        // Ambil ulang data untuk rentang tanggal yang sedang aktif, TANPA filter Gedung/Mesin,
+        // supaya file export selalu lengkap semua gedung meski dashboard sedang difilter.
+        const { data: rows, error } = await db
+            .from('smartway_shiftly')
+            .select('*')
+            .gte('tanggal', startDate).lte('tanggal', endDate)
+            .order('gedung', { ascending: true })
+            .order('tanggal', { ascending: true })
+            .order('shift', { ascending: true })
+            .order('mesin', { ascending: true })
+            .limit(10000);
+
+        if (error) throw error;
+
+        if (!rows || rows.length === 0) {
+            alert('Tidak ada data pada rentang tanggal ini untuk di-export.');
+            return;
+        }
+
+        // Kelompokkan per gedung. Urutan sheet: gedung yang dikenal dulu (Gedung 7, Gedung 4),
+        // baru gedung lain / tanpa gedung (kalau ada) di sheet "Lainnya".
+        const byGedung = {};
+        rows.forEach(r => {
+            const g = r.gedung && MESIN_LIST[r.gedung] ? r.gedung : 'Lainnya';
+            if (!byGedung[g]) byGedung[g] = [];
+            byGedung[g].push(r);
+        });
+
+        const urutanGedung = [...Object.keys(MESIN_LIST), 'Lainnya'].filter(g => byGedung[g] && byGedung[g].length > 0);
+
+        const wb = XLSX.utils.book_new();
+        urutanGedung.forEach(g => {
+            const aoa = [EXPORT_HEADERS, ...byGedung[g].map(rowToExportArray)];
+            const ws = XLSX.utils.aoa_to_sheet(aoa);
+            ws['!cols'] = EXPORT_HEADERS.map(() => ({ wch: 14 }));
+            XLSX.utils.book_append_sheet(wb, ws, sheetNameSafe(g));
+        });
+
+        const labelTanggal = startDate === endDate ? startDate : `${startDate}_sd_${endDate}`;
+        XLSX.writeFile(wb, `SmartWay_Parameter_${labelTanggal}.xlsx`);
+    } catch (e) {
+        console.error(e);
+        alert('Gagal export: ' + (e.message || e));
+    } finally {
+        btn.disabled = false;
+        btn.textContent = teksAsli;
+    }
+}
+
+async function init() {
+    isiDropdownMesin();
+
+    const { data: lastRow } = await db
+        .from('smartway_shiftly')
+        .select('tanggal')
+        .order('tanggal', { ascending: false })
+        .limit(1)
+        .single();
+
+    if (lastRow && lastRow.tanggal) {
+        lastAvailableDate = lastRow.tanggal;
+        startDate = lastAvailableDate;
+        endDate = lastAvailableDate;
+        document.getElementById('filter-date-start').value = lastAvailableDate;
+        document.getElementById('filter-date-end').value = lastAvailableDate;
+        document.getElementById('filter-info').textContent = '(data terbaru)';
+    } else {
+        const today = new Date().toISOString().slice(0,10);
+        startDate = today; endDate = today;
+        document.getElementById('filter-date-start').value = today;
+        document.getElementById('filter-date-end').value = today;
+    }
+
+    loadData();
+}
+
+init();
+</script>
+</body>
+</html>

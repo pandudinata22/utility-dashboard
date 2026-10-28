@@ -1,2 +1,10 @@
-# utility-dashboard
-Dashboard Monitoring Utility - PT Kobe Boga Utama
+# CI Dashboard
+
+Dashboard Continuous Improvement untuk monitoring:
+
+- OEE
+- Waste
+- Downtime
+- Variant Analysis
+- CI Projects
+- Cost Saving

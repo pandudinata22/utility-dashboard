@@ -1,0 +1,275 @@
+
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Input Parameter ChingFong — Gedung 6</title>
+<style>
+* { box-sizing:border-box; }
+body {
+    margin:0; font-family:Arial, sans-serif; background:#f3f4f6;
+    padding-bottom:100px;
+}
+.topbar {
+    background:#1f2937; color:white; padding:16px 20px;
+    position:sticky; top:0; z-index:100;
+}
+.topbar h2 { margin:0; font-size:17px; }
+.topbar p  { margin:4px 0 0; font-size:12px; color:#9ca3af; }
+
+.main { padding:16px; max-width:640px; margin:0 auto; }
+
+.card {
+    background:white; border-radius:12px; padding:18px 18px;
+    box-shadow:0 1px 3px rgba(0,0,0,0.08);
+    margin-bottom:14px; border-top:4px solid #6366f1;
+}
+.card h3 {
+    margin:0 0 14px; font-size:13px; color:#374151; font-weight:700;
+    text-transform:uppercase; letter-spacing:0.05em;
+    display:flex; align-items:center; gap:8px;
+}
+
+.field { margin-bottom:14px; }
+.field:last-child { margin-bottom:0; }
+.field label {
+    display:block; font-size:12.5px; color:#4b5563; font-weight:600;
+    margin-bottom:6px;
+}
+.field .unit { color:#9ca3af; font-weight:400; }
+.field input, .field select, .field textarea {
+    width:100%; padding:11px 12px; border:1px solid #d1d5db; border-radius:8px;
+    font-size:15px; color:#1f2937; background:white; font-family:inherit;
+}
+.field input:focus, .field select:focus, .field textarea:focus {
+    outline:none; border-color:#6366f1; box-shadow:0 0 0 3px #e0e7ff;
+}
+.field textarea { resize:vertical; min-height:70px; }
+.grid2 { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+.grid3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; }
+@media (max-width:480px) { .grid3 { grid-template-columns:1fr 1fr; } }
+
+.gedung-display {
+    font-size:12px; color:#6366f1; font-weight:600; margin-top:6px;
+}
+
+.submit-bar {
+    position:fixed; bottom:0; left:0; width:100%;
+    background:white; padding:12px 16px; box-shadow:0 -2px 8px rgba(0,0,0,0.08);
+    box-sizing:border-box;
+}
+.btn-submit {
+    width:100%; max-width:640px; margin:0 auto; display:block;
+    background:#6366f1; color:white; border:none; padding:15px;
+    border-radius:10px; font-size:15px; font-weight:700; cursor:pointer;
+}
+.btn-submit:active { background:#4f46e5; }
+.btn-submit:disabled { background:#a5a6f6; cursor:default; }
+
+.toast {
+    position:fixed; top:70px; left:50%; transform:translateX(-50%);
+    background:#111827; color:white; padding:12px 20px; border-radius:10px;
+    font-size:13px; z-index:200; box-shadow:0 4px 12px rgba(0,0,0,0.2);
+    opacity:0; pointer-events:none; transition:opacity 0.25s;
+    max-width:90%; text-align:center;
+}
+.toast.show { opacity:1; }
+.toast.err { background:#dc2626; }
+.toast.ok  { background:#16a34a; }
+
+.required-mark { color:#dc2626; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+    <h2>📝 Input Parameter ChingFong — Gedung 6</h2>
+    <p>Semua parameter wajib diisi. SKU dan Catatan bersifat opsional.</p>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<div class="main">
+    <form id="chingfong-form">
+
+        <div class="card" style="border-top-color:#1f2937;">
+            <h3>Informasi Umum</h3>
+            <div class="grid2">
+                <div class="field">
+                    <label>Tanggal <span class="required-mark">*</span></label>
+                    <input type="date" id="f-tanggal" required>
+                </div>
+                <div class="field">
+                    <label>Shift <span class="required-mark">*</span></label>
+                    <select id="f-shift" required>
+                        <option value="">Pilih</option>
+                        <option value="1">Shift 1</option>
+                        <option value="2">Shift 2</option>
+                        <option value="3">Shift 3</option>
+                    </select>
+                </div>
+            </div>
+            <div class="field">
+                <label>Mesin <span class="required-mark">*</span></label>
+                <select id="f-mesin" required onchange="tampilkanGedung()">
+                    <option value="">Pilih mesin</option>
+                    <option>CF 01</option>
+                    <option>CF 02</option>
+                    <option>CF 19</option>
+                    <option>CF 20</option>
+                    <option>CF 04</option>
+                    <option>CF 12</option>
+                    <option>CF 08</option>
+                    <option>CF 17</option>
+                    <option>CF 05</option>
+                    <option>CF 13</option>
+                    <option>CF 06</option>
+                    <option>CF 14</option>
+                    <option>CF 16</option>
+                    <option>CF 15</option>
+                </select>
+                <div class="gedung-display" id="gedung-display"></div>
+            </div>
+            <div class="grid2">
+                <div class="field">
+                    <label>Operator <span class="required-mark">*</span></label>
+                    <input type="text" id="f-operator" placeholder="Nama operator" required>
+                </div>
+                <div class="field">
+                    <label>SKU</label>
+                    <input type="text" id="f-sku" placeholder="Kode SKU">
+                </div>
+            </div>
+        </div>
+
+        <div class="card" style="border-top-color:#0891b2;">
+            <h3>🌡️ Temperature</h3>
+            <div class="grid3">
+                <div class="field"><label>Horizontal Seal Temp Front <span class="required-mark">*</span> <span class="unit">(°C)</span></label>
+                    <input type="number" step="any" inputmode="decimal" id="f-horizontal_seal_temp_front" required></div>
+                <div class="field"><label>Horizontal Seal Temp Back <span class="required-mark">*</span> <span class="unit">(°C)</span></label>
+                    <input type="number" step="any" inputmode="decimal" id="f-horizontal_seal_temp_back" required></div>
+                <div class="field"><label>Vertical Seal Temp <span class="required-mark">*</span> <span class="unit">(°C)</span></label>
+                    <input type="number" step="any" inputmode="decimal" id="f-vertical_seal_temp" required></div>
+            </div>
+        </div>
+
+        <div class="card" style="border-top-color:#10b981;">
+            <h3>⚡ Parameter</h3>
+            <div class="grid2">
+                <div class="field"><label>Speed <span class="required-mark">*</span> <span class="unit">(Bag/Min)</span></label>
+                    <input type="number" step="any" inputmode="decimal" id="f-speed" required></div>
+            </div>
+        </div>
+
+        <div class="card" style="border-top-color:#6b7280;">
+            <h3>📝 Catatan</h3>
+            <div class="field">
+                <label>Catatan (saat ada perubahan parameter)</label>
+                <textarea id="f-catatan" placeholder="Tulis kalau ada perubahan parameter atau hal penting lainnya..."></textarea>
+            </div>
+        </div>
+
+    </form>
+</div>
+
+<div class="submit-bar">
+    <button class="btn-submit" id="btn-submit" onclick="simpanData()">💾 Simpan Data</button>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL = 'https://bmnhtxalfsfaefacgtpm.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_VItBKenz-q2sYz7MsibODA_nYtLXv9Q';
+const { createClient } = supabase;
+const db = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+const GEDUNG_NAME = 'Gedung 6';
+
+// Set tanggal default = hari ini
+document.getElementById('f-tanggal').value = new Date().toISOString().slice(0,10);
+
+function tampilkanGedung() {
+    const mesin = document.getElementById('f-mesin').value;
+    const disp = document.getElementById('gedung-display');
+    disp.textContent = mesin ? `📍 ${GEDUNG_NAME}` : '';
+}
+
+function showToast(msg, type) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = 'toast show ' + (type || '');
+    setTimeout(() => { t.className = 'toast'; }, 3500);
+}
+
+function numOrNull(id) {
+    const v = document.getElementById(id).value;
+    return v === '' ? null : parseFloat(v);
+}
+
+async function simpanData() {
+    const tanggal  = document.getElementById('f-tanggal').value;
+    const shift    = document.getElementById('f-shift').value;
+    const mesin    = document.getElementById('f-mesin').value;
+    const operator = document.getElementById('f-operator').value.trim();
+
+    if (!tanggal || !shift || !mesin || !operator) {
+        showToast('⚠️ Tanggal, Shift, Mesin, dan Operator wajib diisi', 'err');
+        return;
+    }
+
+    // Semua parameter angka wajib diisi. SKU dan Catatan tetap opsional.
+    const form = document.getElementById('chingfong-form');
+    if (!form.checkValidity()) {
+        const firstInvalid = form.querySelector(':invalid');
+        if (firstInvalid) {
+            firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            firstInvalid.focus({ preventScroll: true });
+        }
+        form.reportValidity();
+        showToast('⚠️ Semua parameter wajib diisi. SKU dan Catatan boleh dikosongkan.', 'err');
+        return;
+    }
+
+    const btn = document.getElementById('btn-submit');
+    btn.disabled = true;
+    btn.textContent = 'Menyimpan...';
+
+    const payload = {
+        tanggal, shift: parseInt(shift), mesin, gedung: GEDUNG_NAME,
+        operator, sku: document.getElementById('f-sku').value.trim() || null,
+
+        // Waktu submit dicatat otomatis saat tombol simpan ditekan (timestamp lengkap, UTC ISO)
+        waktu_submit: new Date().toISOString(),
+
+        horizontal_seal_temp_front: numOrNull('f-horizontal_seal_temp_front'),
+        horizontal_seal_temp_back: numOrNull('f-horizontal_seal_temp_back'),
+        vertical_seal_temp: numOrNull('f-vertical_seal_temp'),
+
+        speed: numOrNull('f-speed'),
+
+        catatan: document.getElementById('f-catatan').value.trim() || null,
+    };
+
+    const { error } = await db.from('chingfong_shiftly').insert([payload]);
+
+    btn.disabled = false;
+    btn.textContent = '💾 Simpan Data';
+
+    if (error) {
+        console.error(error);
+        showToast('❌ Gagal menyimpan: ' + error.message, 'err');
+        return;
+    }
+
+    showToast('✅ Data berhasil disimpan', 'ok');
+
+    document.querySelectorAll('#chingfong-form input[type=number]').forEach(el => el.value = '');
+    document.getElementById('f-catatan').value = '';
+    document.getElementById('f-sku').value = '';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="id"><head><meta charset="utf-8"/><meta content="width=device-width,initial-scale=1" name="viewport"/><title>Form Operator | Pengecekan Gramasi</title><style>*{box-sizing:border-box}body{margin:0;background:linear-gradient(135deg,#eef5ff,#f7f9fc 50%,#f2edff);font-family:Inter,system-ui,Arial;color:#1c2c46}header{background:#102c57;color:white;padding:18px max(18px,calc((100vw - 1140px)/2));display:flex;justify-content:space-between;align-items:center;gap:12px}header b{font-size:18px}header small{display:block;color:#a9c4e9;margin-top:3px}.wrap{max-width:1140px;margin:30px auto;padding:0 16px}.hero{padding:25px 29px;border-radius:20px;background:linear-gradient(120deg,#1268e8,#5139bc);color:#fff;margin-bottom:19px}.hero h1{margin:0 0 6px;font-size:27px}.hero p{margin:0;opacity:.85;font-size:13px}.panel{border:1px solid #e2eaf5;background:white;border-radius:18px;padding:22px;margin-bottom:18px;box-shadow:0 9px 26px #1c44740b}.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}.grid.five{grid-template-columns:repeat(5,minmax(0,1fr))}label{display:block;font-size:12px;font-weight:700;color:#506078;margin-bottom:5px}input,select,textarea{width:100%;font:inherit;font-size:14px;border:1px solid #dce4ef;background:#fbfdff;border-radius:10px;padding:11px;min-width:0}input:focus,select:focus,textarea:focus{outline:none;border-color:#1268e8;box-shadow:0 0 0 3px #1268e81a}input[readonly]{background:#f3f7fc}button{border:0;border-radius:10px;padding:11px 16px;font-weight:750;cursor:pointer;background:#1268e8;color:white}button:disabled{opacity:.5;cursor:not-allowed}.secondary{background:#edf3fc;color:#20426b}.ghost{background:#ffffff20;border:1px solid #ffffff60}.actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:18px}.note{font-size:12px;color:#718096}.msg{margin:12px 0;font-size:13px;font-weight:650}.err{color:#dc2626}.ok{color:#059669}.login{max-width:430px;margin:8vh auto}.hide{display:none!important}table{border-collapse:collapse;width:100%;font-size:12px}th{background:#f4f7fb;color:#65758e;font-size:11px;text-align:left}th,td{padding:11px;border-bottom:1px solid #edf0f5;white-space:nowrap}tr:hover td{background:#f8fbff}.scroll{overflow:auto}.pill{padding:4px 8px;border-radius:20px;background:#eaf3ff;color:#115bcc;font-weight:750}.pass{background:#e4f8ee;color:#087e4c}.fail{background:#fff0ed;color:#c24125}.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:13px;margin-bottom:17px}.kpi{background:#fff;padding:19px;border:1px solid #e2eaf5;border-radius:16px}.kpi strong{font-size:25px;display:block;margin-top:7px}.kpi small{color:#63748e}@media(max-width:700px){.grid,.grid.five{grid-template-columns:repeat(2,minmax(0,1fr))}.kpis{grid-template-columns:repeat(2,1fr)}.hero{padding:20px}.hero h1{font-size:22px}}@media(max-width:420px){.grid,.grid.five{grid-template-columns:1fr}}
+/* Header alignment matched to index.html */
+header{position:sticky;top:0;z-index:1000;height:72px;width:100%;padding:0 28px!important;justify-content:flex-start!important;gap:14px;background:rgba(255,255,255,.82)!important;color:#152238!important;border-bottom:1px solid #e5ebf3;box-shadow:0 7px 26px rgba(26,63,114,.05);backdrop-filter:blur(18px)}
+header .operator-head-brand{display:flex!important;align-items:center;justify-content:flex-start;gap:14px;width:auto;margin:0!important;padding:0!important;max-width:none!important}
+
+header b{font-size:18px;color:#152238}header small{color:#8b9ab0;font-size:10px;letter-spacing:.04em}
+@media(max-width:640px){header{height:62px;padding:0 12px!important}header .operator-head-brand{gap:12px}header b{font-size:15px}header small{font-size:9px}}
+
+/* Gramasi targets and group-select workflow */
+.field-help{display:block;color:#8491a7;font-size:10px;line-height:1.45;margin-top:5px}
+select:disabled{color:#8795ac;background:#f1f5f9;cursor:not-allowed}
+.target-field input{font-size:20px;font-weight:850;color:#1268e8!important;letter-spacing:.02em;background:#ebf4ff}
+.target-summary{display:flex;align-items:center;gap:13px;border:1px solid #cde1ff;background:linear-gradient(125deg,#eff7ff,#f6f6ff);border-radius:14px;margin-top:16px;padding:13px 16px}
+.target-summary .target-symbol{display:grid;place-items:center;width:40px;height:40px;background:#dcecff;border-radius:11px;color:#0e5cce;font-size:25px;flex:0 0 auto}
+.target-summary strong{display:block;font-size:16px;color:#17427a}
+.target-summary small{display:block;font-size:11px;color:#617895;margin-top:3px}
+.target-summary .sku-mismatch{color:#b45309;font-weight:750}
+@media(max-width:420px){.target-summary strong{font-size:14px}}
+</style></head><body><header><div class="operator-head-brand"><div><b>KOBE · BOJONEGORO</b><small>Quality Control | Operator</small></div></div></header><main class="wrap"><div id="app"><div class="hero"><h1>Form Pengecekan Gramasi</h1><p>Pengecekan berkala tiap 2 jam · 5 sampel · target otomatis berdasarkan SKU</p></div><form class="panel" id="f"><h3>Identitas Pemeriksaan</h3><div class="grid"><div><label>Tanggal *</label><input id="tanggal" required="" type="date"/></div><div><label>Shift *</label><select id="shift" required=""><option value="">Pilih shift</option><option>1</option><option>2</option><option>3</option></select></div><div><label>Nama Operator *</label><input id="operator" maxlength="100" required=""/></div><div><label for="gedung">Gedung *</label><select id="gedung" required=""><option value="">Pilih gedung</option><option value="4">Gedung 4</option><option value="6">Gedung 6</option><option value="7">Gedung 7</option></select></div><div><label for="mesin">Mesin *</label><select disabled="" id="mesin" required=""><option value="">Pilih gedung dahulu</option></select></div><div><label for="sku">SKU / Produk *</label><select disabled="" id="sku" required=""><option value="">Pilih mesin dahulu</option></select></div><div class="target-field"><label for="target">Target penimbangan (gr) *</label><input id="target" placeholder="Otomatis dari SKU" readonly="" required="" step="any" type="number"/><span class="field-help">Target dihitung otomatis sesuai ketentuan SKU.</span></div><div><label>Jam pengecekan *</label><input id="jam" required="" type="time"/></div><div><label>Pengecekan ke- *</label><input id="urutan" max="12" min="1" required="" type="number" value="1"/></div></div><div class="target-summary" id="targetInfo" role="status"><span class="target-symbol">◎</span><div><strong id="targetText">Target belum ditentukan</strong><small id="skuWarning">Pilih gedung, mesin, dan SKU.</small></div></div><h3 style="margin-top:28px">Berat 5 Sampel Penimbangan (gram)</h3><div class="grid five"><div><label>Sampel 1 *</label><input id="s1" min="0.001" required="" step="any" type="number"/></div><div><label>Sampel 2 *</label><input id="s2" min="0.001" required="" step="any" type="number"/></div><div><label>Sampel 3 *</label><input id="s3" min="0.001" required="" step="any" type="number"/></div><div><label>Sampel 4 *</label><input id="s4" min="0.001" required="" step="any" type="number"/></div><div><label>Sampel 5 *</label><input id="s5" min="0.001" required="" step="any" type="number"/></div></div><div class="grid" style="margin-top:17px"><div><label>Rata-rata penimbangan (gr)</label><input id="avg" readonly=""/></div><div><label>Deviasi rata-rata (%)</label><input id="dev" readonly=""/></div><div><label>Keterangan (opsional)</label><input id="notes" maxlength="500" placeholder="Catatan pengecekan"/></div></div><div class="actions"><button id="submit" type="submit">Submit Pengecekan</button><button class="secondary" type="reset">Bersihkan</button><span class="note">Data masuk ke monitoring SPV setelah berhasil tersimpan.</span></div><div class="msg" id="formMsg" role="status"></div></form><section class="panel"><h3>5 Pengiriman Terakhir</h3><div class="scroll"><table><thead><tr><th>Waktu</th><th>Gedung</th><th>Mesin</th><th>SKU</th><th>Target (gr)</th><th>Rata-rata (gr)</th><th>Shift</th></tr></thead><tbody id="history"><tr><td colspan="7">Belum ada data</td></tr></tbody></table></div></section></div></main><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script>const db=supabase.createClient("https://bmnhtxalfsfaefacgtpm.supabase.co","sb_publishable_VItBKenz-q2sYz7MsibODA_nYtLXv9Q");
+const CATALOG={"4":[{"mesin":["SW 39","SW 40","SW 41","SW 42","SW 43","SW 44","SW 45","SW 46"],"sku":["BonCabe Cakar Naga LV15 25g","BonCabe Cakar Naga LV15 60g","Cakar Naga Jagung Bakar 23g","Cakar Naga Rumput Laut 23g","Cakar Naga Sapi Panggang 23g"],"produk":[{"nama":"BonCabe Cakar Naga LV15 25g","gramasi":25},{"nama":"BonCabe Cakar Naga LV15 60g","gramasi":60},{"nama":"Cakar Naga Jagung Bakar 23g","gramasi":23},{"nama":"Cakar Naga Rumput Laut 23g","gramasi":23},{"nama":"Cakar Naga Sapi Panggang 23g","gramasi":23}]}],"6":[{"mesin":["BP 22","BP 23","BP 24"],"sku":["BonCabe Makaroni LV15 27g","BonCabe Makaroni LV10 27g","BonCabe Makaroni Keju LV2 27g"],"produk":[{"nama":"BonCabe Makaroni LV15 27g","gramasi":27},{"nama":"BonCabe Makaroni LV10 27g","gramasi":27},{"nama":"BonCabe Makaroni Keju LV2 27g","gramasi":27}]},{"mesin":["CF 01","CF 02","CF 04","CF 05","CF 06","CF 08","CF 12","CF 13","CF 14","CF 15","CF 16","CF 17","CF 19","CF 20"],"sku":["BonCabe Makaroni LV15 27g","BonCabe Makaroni LV10 27g","BonCabe Makaroni LV50 20g","BigPuff Balado BBQ 13g","BonCabe Makaroni LV15 135g","BonCabe Makaroni LV10 135g","BonCabe Makaroni Keju LV2 135g","BigPuff LV0 13g"],"produk":[{"nama":"BonCabe Makaroni LV15 27g","gramasi":27},{"nama":"BonCabe Makaroni LV10 27g","gramasi":27},{"nama":"BonCabe Makaroni LV50 20g","gramasi":20},{"nama":"BigPuff Balado BBQ 13g","gramasi":13},{"nama":"BonCabe Makaroni LV15 135g","gramasi":135},{"nama":"BonCabe Makaroni LV10 135g","gramasi":135},{"nama":"BonCabe Makaroni Keju LV2 135g","gramasi":135},{"nama":"BigPuff LV0 13g","gramasi":13}]},{"mesin":["Boato"],"sku":["BonCabe LV10 5,5g","BonCabe LV15 5,5g","BonCabe LV30 4,5g"],"produk":[{"nama":"BonCabe LV10 5,5g","gramasi":5.5},{"nama":"BonCabe LV15 5,5g","gramasi":5.5},{"nama":"BonCabe LV30 4,5g","gramasi":4.5}]}],"7":[{"mesin":["SW 32","SW 33","SW 34","SW 35","SW 36","SW 37"],"sku":["BonCabe Kulit Pangsit LV10 27g","BonCabe Kulit Pangsit LV10 70g","BonCrispy Ubi Balado 20g","BonCrispy Ubi Original 20g","Kulit Pangsit Rumput Laut 27g","Kulit Pangsit Ayam Panggang 27g","Kulit Pangsit Rumput Laut 70g","Kulit Pangsit Ayam Panggang 70g"],"produk":[{"nama":"BonCabe Kulit Pangsit LV10 27g","gramasi":27},{"nama":"BonCabe Kulit Pangsit LV10 70g","gramasi":70},{"nama":"BonCrispy Ubi Balado 20g","gramasi":20},{"nama":"BonCrispy Ubi Original 20g","gramasi":20},{"nama":"Kulit Pangsit Rumput Laut 27g","gramasi":27},{"nama":"Kulit Pangsit Ayam Panggang 27g","gramasi":27},{"nama":"Kulit Pangsit Rumput Laut 70g","gramasi":70},{"nama":"Kulit Pangsit Ayam Panggang 70g","gramasi":70}]},{"mesin":["SW 38"],"sku":["SBM LV15 10g","BCMK LV0 10g"],"produk":[{"nama":"SBM LV15 10g","gramasi":10},{"nama":"BCMK LV0 10g","gramasi":10}]},{"mesin":["BOOSTAR 25","BOOSTAR 26","BOOSTAR 27","BOOSTAR 28","BOOSTAR 29"],"sku":["BonCabe Mi Krispi LV15 16g","BonCrispy Mi Krispi LV0 16g"],"produk":[{"nama":"BonCabe Mi Krispi LV15 16g","gramasi":16},{"nama":"BonCrispy Mi Krispi LV0 16g","gramasi":16}]},{"mesin":["BOOSTAR 30","BOOSTAR 31"],"sku":["Mi BonCabe Chili Oil LV15 60g","BonChili Instant Noodle LV15 105g","Bali Bulan Noodles 200g","Wonton Noodles 200g","BonChili Instant Noodle LV10 105g"],"produk":[{"nama":"Mi BonCabe Chili Oil LV15 60g","gramasi":60},{"nama":"BonChili Instant Noodle LV15 105g","gramasi":105},{"nama":"Bali Bulan Noodles 200g","gramasi":200},{"nama":"Wonton Noodles 200g","gramasi":200},{"nama":"BonChili Instant Noodle LV10 105g","gramasi":105}]}]};
+const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const $=id=>document.getElementById(id);
+const nf=new Intl.NumberFormat('id-ID',{maximumFractionDigits:2});
+const formatGram=v=>(v!==null&&v!==undefined&&String(v).trim()!==''&&Number.isFinite(Number(v)))?nf.format(Number(v)):'—';
+const norm=(a,b)=>Math.abs(Number(a)-Number(b))<0.000001;
+// Semua SKU 135 gr di Gedung 6 memakai 5 kali penimbangan; SKU lain 10 kali.
+const targetMultiplier=(gedung,gramasi)=>String(gedung)==='6'&&norm(gramasi,135)?1:10;
+const machineInfo=Object.fromEntries(Object.entries(CATALOG).flatMap(([gedung,groups])=>groups.flatMap((g,i)=>g.mesin.map(m=>[m,{gedung,group:i}]))));
+const machineNames=gedung=>CATALOG[gedung]?CATALOG[gedung].flatMap(g=>g.mesin):[];
+const findGroup=machine=>{let info=machineInfo[machine];return info?CATALOG[info.gedung][info.group]:null};
+const getSkuGramasi=sku=>{const m=String(sku).match(/(\d+(?:[.,]\d+)?)\s*g\s*$/i);return m?Number(m[1].replace(',','.')):null};
+</script><script>
+// SKU difilter sesuai mesin dari Excel; gramasi diambil langsung dari SKU yang dipilih.
+function setOptions(select,placeholder,items,labelFor){
+    select.innerHTML='<option value="">'+esc(placeholder)+'</option>'+items.map(item=>'<option value="'+esc(String(item))+'">'+esc(labelFor(item))+'</option>').join('');
+    select.disabled=!items.length;
+}
+function onBuildingChanged(){
+    const building=$('gedung').value;
+    setOptions($('mesin'),building?'Pilih mesin':'Pilih gedung dahulu',machineNames(building),x=>x);
+    setOptions($('sku'),'Pilih mesin dahulu',[],x=>x);
+    updateTarget();
+}
+function machineChanged(){
+    const group=findGroup($('mesin').value);
+    const skus=group?group.produk.map(x=>x.nama):[];
+    setOptions($('sku'),group?'Pilih SKU / Produk':'Pilih mesin dahulu',skus,x=>x);
+    updateTarget();
+}
+function skuChanged(){
+    updateTarget();
+}
+function updateTarget(){
+    // Lookup is based on the exact chosen SKU in the selected machine group.
+    const group=findGroup($('mesin').value);
+    const product=group?.produk.find(x=>x.nama===$('sku').value);
+    const gramasi=product?Number(product.gramasi):NaN;
+    const pengali=targetMultiplier($('gedung').value,gramasi);
+    const target=Number.isFinite(gramasi)&&gramasi>0?Math.round(gramasi*pengali*1000)/1000:null;
+    $('target').value=target===null?'':String(target);
+    $('targetText').textContent=target===null?'Target belum ditentukan':formatGram(gramasi)+' gr × '+pengali+' = '+formatGram(target)+' gr';
+    const info=$('skuWarning');
+    info.textContent=target===null?'Pilih gedung, mesin, dan SKU untuk menentukan target.':'Target diambil otomatis dari gramasi SKU yang dipilih.';
+    info.className='';
+    calc();
+}
+function calc(){
+    const samples=[1,2,3,4,5].map(i=>$('s'+i).value);
+    const full=samples.every(v=>v!=='');
+    const nums=samples.map(Number);
+    const valid=full&&nums.every(v=>Number.isFinite(v)&&v>0);
+    const target=$('target').value===''?0:Number($('target').value);
+    const avg=valid?nums.reduce((a,b)=>a+b,0)/5:null;
+    $('avg').value=avg===null?'':avg.toFixed(3);
+    $('dev').value=avg!==null&&target>0?((avg-target)/target*100).toFixed(2):'';
+}
+async function history(){
+    const {data,error}=await db.from('gramasi_checks').select('created_at,mesin,sku,gramasi_target,rata_rata,shift').order('created_at',{ascending:false}).limit(5);
+    if(error){$('history').innerHTML='<tr><td colspan="7">Gagal memuat riwayat: '+esc(error.message)+'</td></tr>';return;}
+    $('history').innerHTML=data.length?data.map(x=>`<tr><td>${esc(new Date(x.created_at).toLocaleString('id-ID'))}</td><td>${esc(machineInfo[x.mesin]?'Gedung '+machineInfo[x.mesin].gedung:'—')}</td><td>${esc(x.mesin)}</td><td>${esc(x.sku)}</td><td>${formatGram(x.gramasi_target)}</td><td>${formatGram(x.rata_rata)}</td><td>${esc(x.shift)}</td></tr>`).join(''):'<tr><td colspan="7">Belum ada pengiriman</td></tr>';
+}
+function setToday(){
+    const now=new Date();
+    $('tanggal').value=new Date(now.getTime()-now.getTimezoneOffset()*60000).toISOString().slice(0,10);
+}
+async function boot(){setToday();onBuildingChanged();try{await history()}catch(ex){$('history').innerHTML='<tr><td colspan="7">Riwayat belum tersedia</td></tr>'}}
+$('gedung').addEventListener('change',onBuildingChanged);
+$('mesin').addEventListener('change',machineChanged);
+$('sku').addEventListener('change',skuChanged);
+[1,2,3,4,5].forEach(i=>$('s'+i).addEventListener('input',calc));
+$('f').addEventListener('reset',()=>{
+    // HTML reset terlebih dahulu, lalu nonaktifkan kembali pilihan turunan.
+    queueMicrotask(()=>{onBuildingChanged();setToday();$('formMsg').textContent='';});
+});
+$('f').addEventListener('submit',async e=>{
+    e.preventDefault();
+    const btn=$('submit');btn.disabled=true;
+    $('formMsg').textContent='Menyimpan...';$('formMsg').className='msg';
+    try{
+        const samples=[1,2,3,4,5].map(i=>Number($('s'+i).value));
+        const target=$('target').value===''?NaN:Number($('target').value);
+        const gedung=$('gedung').value,mesin=$('mesin').value,sku=$('sku').value;
+        const group=findGroup(mesin);
+        if(!gedung||!group||!machineInfo[mesin]||machineInfo[mesin].gedung!==gedung)throw Error('Gedung atau mesin belum sesuai daftar Excel.');
+        const product=group.produk.find(x=>x.nama===sku);
+        if(!product)throw Error('Pilih SKU sesuai kelompok mesin yang digunakan.');
+        const gramasi=Number(product.gramasi);
+        if(!Number.isFinite(gramasi)||gramasi<=0||!Number.isFinite(target)||target<=0||!norm(target,gramasi*targetMultiplier(gedung,gramasi)))throw Error('Target gramasi tidak sesuai dengan SKU yang dipilih.');
+        if(samples.some((x,i)=>$('s'+(i+1)).value===''||!Number.isFinite(x)||x<=0))throw Error('Kelima berat sampel harus lebih dari nol.');
+        // Tidak menambah kolom 'gedung' karena skema Supabase saat ini belum menyediakan kolom itu.
+        // Gedung diturunkan dari nama mesin pada monitoring SPV.
+        const payload={
+            operator_nama:$('operator').value.trim(),tanggal:$('tanggal').value,shift:$('shift').value,
+            mesin,sku:sku.trim(),gramasi_target:target,jam_pengecekan:$('jam').value,
+            pengecekan_ke:Number($('urutan').value),sampel_1:samples[0],sampel_2:samples[1],
+            sampel_3:samples[2],sampel_4:samples[3],sampel_5:samples[4],catatan:$('notes').value.trim()||null
+        };
+        const {error}=await db.from('gramasi_checks').insert(payload);
+        if(error)throw Error(error.message);
+        $('formMsg').textContent='Berhasil dikirim. Target '+formatGram(target)+' gr tersimpan untuk monitoring SPV.';
+        $('formMsg').className='msg ok';
+        [1,2,3,4,5].forEach(i=>$('s'+i).value='');calc();await history();
+    }catch(ex){$('formMsg').textContent='Gagal menyimpan: '+ex.message;$('formMsg').className='msg err';}
+    finally{btn.disabled=false;}
+});
+boot();
+</script></body></html>

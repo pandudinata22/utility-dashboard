@@ -1,0 +1,851 @@
+
+
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Import Extruder — Bojonegoro Monitoring</title>
+<style>
+
+:root {
+    --primary:#1268e8;
+    --primary-dark:#0748ad;
+    --primary-soft:#eaf3ff;
+    --accent:#7c3aed;
+    --success:#16a065;
+    --warning:#f59e0b;
+    --extruder:#ea580c;
+    --extruder-soft:#fff4e8;
+    --danger:#e5484d;
+    --ink:#152238;
+    --muted:#6b7a90;
+    --line:#e5ebf3;
+    --surface:rgba(255,255,255,.94);
+    --shadow:0 18px 50px rgba(26,63,114,.11);
+}
+* { box-sizing:border-box; }
+html { scroll-behavior:smooth; }
+body {
+    margin:0;
+    min-height:100vh;
+    overflow-x:hidden;
+    font-family:Arial, sans-serif;
+    color:var(--ink);
+    background:
+        radial-gradient(circle at 8% 8%, rgba(18,104,232,.13), transparent 28%),
+        radial-gradient(circle at 92% 5%, rgba(124,58,237,.10), transparent 26%),
+        linear-gradient(145deg,#eef5ff 0%,#f8fafc 48%,#f5f1ff 100%);
+}
+body::before, body::after {
+    content:"";
+    position:fixed;
+    z-index:-1;
+    border-radius:50%;
+    pointer-events:none;
+}
+body::before { width:280px; height:280px; left:-110px; bottom:7%; background:rgba(18,104,232,.06); }
+body::after  { width:340px; height:340px; right:-150px; top:35%; background:rgba(124,58,237,.05); }
+
+/* Top navigation */
+.topbar {
+    position:fixed;
+    top:0; left:0; right:0;
+    height:64px;
+    z-index:1000;
+    display:flex;
+    align-items:center;
+    gap:14px;
+    padding:0 22px;
+    color:#fff;
+    background:linear-gradient(135deg,rgba(7,72,173,.96),rgba(18,104,232,.94) 55%,rgba(124,58,237,.92));
+    border-bottom:1px solid rgba(255,255,255,.16);
+    box-shadow:0 8px 28px rgba(20,58,125,.18);
+    backdrop-filter:blur(15px);
+}
+.topbar h2 { margin:0 !important; font-size:18px; font-weight:700; letter-spacing:-.01em; }
+.menu-btn {
+    width:40px; height:40px; display:grid; place-items:center; margin:0;
+    border:1px solid rgba(255,255,255,.20); border-radius:12px;
+    background:rgba(255,255,255,.10); font-size:23px; cursor:pointer; transition:.2s ease;
+}
+.menu-btn:hover { background:rgba(255,255,255,.18); transform:translateY(-1px); }
+
+/* Sidebar */
+.sidebar {
+    height:100%; width:270px; position:fixed; top:0; left:-270px; z-index:1100;
+    padding:78px 14px 24px; overflow-y:auto;
+    background:linear-gradient(180deg,#111a2d 0%,#152340 55%,#101827 100%);
+    box-shadow:18px 0 45px rgba(12,26,54,.22); transition:left .28s ease;
+}
+.sidebar::before {
+    content:"BOJONEGORO"; position:absolute; top:22px; left:20px;
+    color:rgba(255,255,255,.60); font-size:11px; font-weight:700; letter-spacing:.18em;
+}
+.sidebar a {
+    display:flex; align-items:center; min-height:44px; margin:4px 0; padding:11px 14px;
+    border-radius:12px; color:#dce6f5; text-decoration:none; font-size:13px; transition:.2s ease;
+}
+.sidebar a:hover { background:rgba(255,255,255,.08); color:#fff; transform:translateX(2px); }
+.sidebar a.active { color:#fff; background:linear-gradient(135deg,var(--primary),#6650dc); box-shadow:0 9px 20px rgba(18,104,232,.26); }
+
+.main { width:min(1120px,calc(100% - 36px)); margin:0 auto; padding:88px 0 46px; }
+
+/* Hero */
+.page-hero {
+    position:relative; overflow:hidden; min-height:190px;
+    display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:center; gap:28px;
+    margin-bottom:22px; padding:30px 34px;
+    border:1px solid rgba(255,255,255,.40); border-radius:28px; color:#fff;
+    background:linear-gradient(120deg,rgba(0,32,91,.12),rgba(61,16,135,.16)),
+               linear-gradient(135deg,#0b63dc 0%,#174fb6 52%,#7338d2 100%);
+    box-shadow:0 24px 60px rgba(25,73,157,.24);
+}
+.page-hero::before {
+    content:""; position:absolute; width:330px; height:330px; right:-80px; top:-190px;
+    border:1px solid rgba(255,255,255,.15); border-radius:50%;
+    box-shadow:0 0 0 42px rgba(255,255,255,.035),0 0 0 86px rgba(255,255,255,.024);
+}
+.hero-copy,.hero-status { position:relative; z-index:1; }
+.hero-kicker {
+    display:inline-flex; align-items:center; gap:8px; margin-bottom:13px; padding:7px 11px;
+    border:1px solid rgba(255,255,255,.22); border-radius:999px; background:rgba(255,255,255,.10);
+    font-size:11px; font-weight:700; letter-spacing:.09em; text-transform:uppercase;
+}
+.hero-kicker::before { content:""; width:8px; height:8px; border-radius:50%; background:#ffb86b; box-shadow:0 0 0 5px rgba(255,184,107,.16); }
+.page-hero h1 { margin:0; font-size:clamp(31px,4vw,46px); line-height:1; letter-spacing:-.035em; }
+.page-hero p { max-width:680px; margin:10px 0 0; color:rgba(255,255,255,.78); font-size:14px; line-height:1.55; }
+.hero-status {
+    min-width:218px; padding:20px; border:1px solid rgba(255,255,255,.22); border-radius:20px;
+    background:rgba(255,255,255,.12); backdrop-filter:blur(12px); box-shadow:inset 0 1px 0 rgba(255,255,255,.14);
+}
+.hero-status span { display:block; color:rgba(255,255,255,.72); font-size:11px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; }
+.hero-status strong { display:block; margin-top:7px; font-size:23px; line-height:1.15; }
+.hero-status small { display:block; margin-top:5px; color:rgba(255,255,255,.74); font-size:11px; line-height:1.4; }
+
+.sec-title {
+    margin:0 0 15px !important; color:#34435a; font-size:12px; font-weight:800;
+    text-transform:uppercase; letter-spacing:.08em;
+}
+.card-wide {
+    position:relative; overflow:hidden; margin-bottom:20px; padding:27px;
+    border:1px solid rgba(222,231,243,.96); border-top:none; border-radius:24px;
+    background:var(--surface); box-shadow:var(--shadow); backdrop-filter:blur(14px);
+}
+.card-wide::before {
+    content:""; position:absolute; top:0; left:0; right:0; height:4px;
+    background:linear-gradient(90deg,var(--extruder),#f59e0b,#7c3aed);
+}
+.card-wide > p { color:var(--muted) !important; line-height:1.6; font-size:13px !important; }
+
+.upload-zone {
+    position:relative; display:flex; flex-direction:column; align-items:center; justify-content:center;
+    min-height:210px; border:2px dashed #ced9e8; border-radius:20px; padding:34px 20px;
+    text-align:center; cursor:pointer; transition:.22s ease;
+    background:linear-gradient(145deg,#fbfdff,#f7f9ff);
+}
+.upload-zone::after {
+    content:""; position:absolute; inset:10px; border:1px solid rgba(234,88,12,.06); border-radius:14px; pointer-events:none;
+}
+.upload-zone:hover,.upload-zone.dragover {
+    transform:translateY(-2px); border-color:#f28a4d; background:linear-gradient(145deg,#fffaf6,#fff4e8);
+    box-shadow:0 14px 30px rgba(234,88,12,.10);
+}
+.upload-zone input[type=file] { display:none; }
+.upload-icon {
+    width:62px; height:62px; display:grid; place-items:center; margin-bottom:12px;
+    border-radius:18px; background:linear-gradient(135deg,#fff0e6,#f4eaff); font-size:30px;
+    box-shadow:inset 0 0 0 1px #f5dfd0;
+}
+.upload-text { color:#273750; font-weight:700; font-size:15px; }
+.upload-sub { color:#94a2b5; font-size:12px; margin-top:6px; }
+.file-chip {
+    display:inline-flex; align-items:center; gap:8px; margin-top:15px; padding:9px 13px;
+    border:1px solid #e3eaf3; border-radius:999px; background:#f7faff; color:#33445d; font-size:12px; font-weight:700;
+}
+.file-chip button { width:23px; height:23px; padding:0; display:grid; place-items:center; border:none; border-radius:50%; background:#feecec; color:#d9363e; cursor:pointer; font-size:12px; }
+
+.preview-summary { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:11px; margin-top:19px; }
+.preview-stat {
+    position:relative; overflow:hidden; min-height:92px; padding:15px 13px; text-align:left;
+    border:1px solid #e6edf5; border-radius:17px; background:rgba(255,255,255,.9); box-shadow:0 10px 22px rgba(36,73,124,.06);
+}
+.preview-stat::after { content:""; position:absolute; width:58px; height:58px; right:-22px; bottom:-26px; border-radius:50%; background:#fff0e6; }
+.preview-stat .num { position:relative; z-index:1; color:#17263c; font-size:20px; font-weight:800; line-height:1.15; }
+.preview-stat .lbl { position:relative; z-index:1; margin-top:6px; color:#8d9aae; font-size:10px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; }
+.preview-table-wrap {
+    max-height:360px; overflow:auto; margin-top:18px; border:1px solid #e6edf5; border-radius:16px; background:#fff;
+    box-shadow:0 8px 22px rgba(36,73,124,.05);
+}
+table.preview-table { width:100%; border-collapse:collapse; font-size:12px; }
+table.preview-table th {
+    position:sticky; top:0; z-index:2; padding:10px 12px; text-align:center;
+    background:#f5f8fc; color:#6f7e92; border-bottom:1px solid #dfe7f0;
+    font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:.045em;
+}
+table.preview-table td { padding:9px 12px; border-bottom:1px solid #edf2f7; text-align:center; color:#34435a; }
+table.preview-table tbody tr:hover td { background:#f8fbff; }
+table.preview-table td.empty-cell { color:#c6cfdb; }
+table.preview-table tr.row-notrun td { background:#f8fafc; color:#9aa7b7; }
+table.preview-table tr.row-warn td { background:#fff3f3; color:#d8444a; }
+
+.warn-box,.danger-box { border-radius:15px; padding:13px 15px; font-size:12px; line-height:1.55; }
+.warn-box { margin-top:14px; border:1px solid #f7d998; background:#fffaf0; color:#8c6117; }
+.danger-box { margin-top:14px; border:1px solid #f6c6c8; background:#fff5f5; color:#9f2930; }
+.warn-box b,.danger-box b { display:block; margin-bottom:3px; font-size:13px; }
+.btn-row { display:flex; gap:10px; margin-top:18px; flex-wrap:wrap; }
+.btn-primary,.btn-secondary {
+    min-height:44px; padding:11px 18px; border-radius:12px; cursor:pointer; font-family:Arial,sans-serif; font-size:13px; font-weight:700; transition:.18s ease;
+}
+.btn-primary { border:none; color:#fff; background:linear-gradient(135deg,var(--extruder),#f08a24); box-shadow:0 9px 18px rgba(234,88,12,.22); }
+.btn-primary:hover:not(:disabled) { transform:translateY(-1px); box-shadow:0 12px 22px rgba(234,88,12,.27); }
+.btn-primary:disabled { background:#aeb8c6; box-shadow:none; cursor:not-allowed; }
+.btn-secondary { border:1px solid #d8e1ec; color:#47566c; background:#fff; }
+.btn-secondary:hover { transform:translateY(-1px); background:#f7f9fc; }
+.status-line { margin-top:15px; padding:10px 12px; border-radius:11px; font-size:12px; line-height:1.45; }
+.status-line:empty { display:none; }
+.status-line.ok { color:#147848; background:#edf9f2; border:1px solid #cdeedb; }
+.status-line.err { color:#b23037; background:#fff1f1; border:1px solid #f3cccc; }
+.status-line.busy { color:#315f9c; background:#f0f6ff; border:1px solid #d7e7fb; }
+.progress-track { height:9px; margin-top:14px; overflow:hidden; border-radius:999px; background:#edf1f6; display:none; }
+.progress-fill { height:100%; width:0%; border-radius:999px; background:linear-gradient(90deg,var(--extruder),#f59e0b,#7c3aed); transition:width .2s; }
+
+@media (max-width:900px) {
+    .page-hero { grid-template-columns:1fr; }
+    .hero-status { width:min(100%,360px); }
+    .preview-summary { grid-template-columns:repeat(2,minmax(0,1fr)); }
+}
+@media (max-width:640px) {
+    .topbar { height:60px; padding:0 12px; }
+    .topbar h2 { font-size:15px; }
+    .menu-btn { width:36px; height:36px; font-size:21px; border-radius:10px; }
+    .main { width:min(100% - 20px,1120px); padding:74px 0 30px; }
+    .page-hero { min-height:auto; padding:25px 21px; border-radius:22px; }
+    .page-hero h1 { font-size:34px; }
+    .hero-status { min-width:0; padding:16px; border-radius:16px; }
+    .card-wide { padding:20px 15px; border-radius:20px; }
+    .upload-zone { min-height:185px; padding:28px 14px; border-radius:17px; }
+    .preview-summary { grid-template-columns:1fr 1fr; gap:8px; }
+    .preview-stat { min-height:82px; padding:12px; border-radius:14px; }
+    .preview-table-wrap { overflow-x:auto; }
+    table.preview-table { min-width:670px; }
+    .btn-row { flex-direction:column; }
+    .btn-primary,.btn-secondary { width:100%; }
+}
+@media (max-width:380px) { .preview-summary { grid-template-columns:1fr; } }
+
+
+/* Professional confirmation modal */
+.confirm-modal-backdrop{position:fixed;inset:0;z-index:3000;display:none;align-items:center;justify-content:center;padding:20px;background:rgba(15,23,42,.55);backdrop-filter:blur(7px)}
+.confirm-modal-backdrop.show{display:flex}
+.confirm-modal{width:min(560px,100%);overflow:hidden;border:1px solid rgba(226,232,240,.95);border-radius:24px;background:#fff;box-shadow:0 30px 90px rgba(15,23,42,.30);animation:confirmModalIn .18s ease-out}
+@keyframes confirmModalIn{from{opacity:0;transform:translateY(10px) scale(.985)}to{opacity:1;transform:translateY(0) scale(1)}}
+.confirm-modal-head{display:flex;align-items:flex-start;gap:14px;padding:22px 24px 17px}
+.confirm-modal-icon{flex:0 0 auto;width:46px;height:46px;display:grid;place-items:center;border-radius:15px;color:#b45309;background:#fff7e6;border:1px solid #fde3ae;font-size:22px}
+.confirm-modal-title{margin:1px 0 5px;color:#172033;font-size:19px;font-weight:800;letter-spacing:-.02em}
+.confirm-modal-subtitle{margin:0;color:#718096;font-size:12px;line-height:1.55}
+.confirm-modal-close{margin-left:auto;width:34px;height:34px;display:grid;place-items:center;border:0;border-radius:10px;background:#f5f7fa;color:#64748b;cursor:pointer;font-size:18px}
+.confirm-modal-close:hover{background:#edf1f6;color:#334155}
+.confirm-modal-body{padding:0 24px 20px}
+.confirm-summary{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-bottom:14px}
+.confirm-summary-card{padding:14px 15px;border:1px solid #e6edf5;border-radius:15px;background:#f8fbff}
+.confirm-summary-card span{display:block;color:#8795a8;font-size:9px;font-weight:800;letter-spacing:.07em;text-transform:uppercase}
+.confirm-summary-card strong{display:block;margin-top:5px;color:#22314a;font-size:21px;line-height:1.1}
+.confirm-replace-note{display:flex;gap:10px;padding:13px 14px;border:1px solid #f1d49a;border-radius:14px;color:#82570e;background:#fffaf0;font-size:11.5px;line-height:1.55}
+.confirm-replace-note strong{color:#6f4808}
+.confirm-duplicate-note{display:none;margin-top:10px;padding:10px 12px;border:1px solid #d9e7fb;border-radius:12px;color:#315f9c;background:#f3f8ff;font-size:11px;line-height:1.5}
+.confirm-duplicate-note.show{display:block}
+.confirm-modal-actions{display:flex;justify-content:flex-end;gap:10px;padding:16px 24px 22px;border-top:1px solid #edf1f6;background:#fbfcfe}
+.confirm-btn{min-height:43px;padding:10px 16px;border-radius:12px;font-family:Arial,sans-serif;font-size:12px;font-weight:800;cursor:pointer;transition:.18s ease}
+.confirm-btn.cancel{border:1px solid #dce4ee;color:#536176;background:#fff}
+.confirm-btn.cancel:hover{background:#f6f8fb}
+.confirm-btn.primary{border:0;color:#fff;background:linear-gradient(135deg,#0f5bc7,#1268e8 58%,#6a42da);box-shadow:0 10px 22px rgba(18,104,232,.22)}
+.confirm-btn.primary:hover{transform:translateY(-1px);filter:brightness(1.03)}
+body.modal-open{overflow:hidden}
+@media(max-width:560px){.confirm-modal-backdrop{padding:12px;align-items:flex-end}.confirm-modal{border-radius:22px 22px 16px 16px}.confirm-modal-head{padding:19px 18px 14px}.confirm-modal-body{padding:0 18px 17px}.confirm-summary{grid-template-columns:1fr 1fr}.confirm-modal-actions{padding:14px 18px 18px;flex-direction:column-reverse}.confirm-btn{width:100%}}
+
+</style>
+</head>
+<body>
+
+<div class="sidebar" id="sidebar">
+    <a href="index.html">Dashboard Utama</a>
+    <a href="oee.html">OEE</a>
+    <a href="tonase.html">Tonase</a>
+    <a href="waste.html">Waste</a>
+    <a href="cost-material.html">Cost Material</a>
+    <a href="improvement-monitoring.html">Improvement Monitoring</a>
+    <a href="smartway.html" style="margin-top:20px; border-top:1px solid #374151;">🛠️ Smart Way</a>
+    <a href="baopack.html">📦 Baopack</a>
+    <a href="chingfong.html">⚙️ ChingFong</a>
+    <a href="import-extruder.html" class="active">📤 Import Extruder</a>
+    <a href="settings.html">⚙️ Settings</a>
+</div>
+
+<div class="topbar">
+    <span class="menu-btn" onclick="toggleMenu()">☰</span>
+    <h2 style="margin:0;">📤 Import Extruder</h2>
+</div>
+
+<div class="main">
+
+    <section class="page-hero">
+        <div class="hero-copy">
+            <div class="hero-kicker">Production Data Management</div>
+            <h1>Import Extruder</h1>
+            <p>Upload dan validasi data achievement Extruder sebelum dikirim ke Dashboard Bojonegoro. Preview membantu memastikan tanggal, shift, target, dan realisasi sudah terbaca dengan benar.</p>
+        </div>
+        <div class="hero-status">
+            <span>Alur Import</span>
+            <strong>Excel → Preview → Submit</strong>
+            <small>Data baru akan menggantikan seluruh data Extruder yang tersimpan.</small>
+        </div>
+    </section>
+
+    <div class="card-wide">
+        <div class="sec-title" style="margin-top:0;">1. Upload File Excel</div>
+        <p style="color:#6b7280; font-size:13px; margin-top:-6px;">
+            Format yang dibaca: sheet <b>DATA</b> dengan kolom Tanggal, Week, Bulan, Shift,
+            Target Adukan, Realisasi Adukan, Target SFG Oven, Realisasi SFG Oven — sama seperti
+            file achievement extruder yang biasa dipakai. Shift yang tidak running boleh
+            dikosongkan (bukan diisi 0) — nilai kosong akan tetap disimpan kosong (null) supaya
+            bisa difilter dengan benar di Dashboard Utama. Sheet <b>Downtime</b> juga akan dibaca otomatis untuk mengisi kartu Downtime Extruder.
+        </p>
+
+        <label class="upload-zone" id="upload-zone" for="file-input">
+            <div class="upload-icon">📄</div>
+            <div class="upload-text">Klik untuk pilih file, atau drag & drop di sini</div>
+            <div class="upload-sub">.xlsx atau .xls</div>
+            <input type="file" id="file-input" accept=".xlsx,.xls">
+        </label>
+
+        <div id="file-chip-area"></div>
+        <div id="preview-area"></div>
+    </div>
+
+    <div class="card-wide" id="submit-card" style="display:none;">
+        <div class="sec-title" style="margin-top:0;">2. Submit ke Dashboard</div>
+        <div class="danger-box">
+            <b>⚠️ Perhatian — data lama akan dihapus</b>
+            Setiap submit akan <b>menghapus SEMUA data extruder yang tersimpan sebelumnya</b>
+            lalu menggantinya dengan data dari file ini. Pastikan file yang diupload sudah benar
+            dan lengkap sebelum melanjutkan.
+        </div>
+        <div class="btn-row">
+            <button class="btn-primary" id="btn-submit" onclick="submitData()">🗑️ Hapus Data Lama & Submit Data Baru</button>
+            <button class="btn-secondary" onclick="resetForm()">Batal</button>
+        </div>
+        <div class="progress-track" id="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
+        <div class="status-line" id="status-line"></div>
+    </div>
+
+</div>
+
+
+<div class="confirm-modal-backdrop" id="submit-confirm-modal" aria-hidden="true" onclick="handleSubmitModalBackdrop(event)">
+  <div class="confirm-modal" role="dialog" aria-modal="true" aria-labelledby="submit-confirm-title">
+    <div class="confirm-modal-head">
+      <div class="confirm-modal-icon">⚠</div>
+      <div>
+        <div class="confirm-modal-title" id="submit-confirm-title">Konfirmasi Sinkronisasi Data</div>
+        <p class="confirm-modal-subtitle">Pastikan workbook yang dipilih sudah benar dan lengkap sebelum melanjutkan.</p>
+      </div>
+      <button type="button" class="confirm-modal-close" onclick="closeSubmitModal()" aria-label="Tutup">×</button>
+    </div>
+    <div class="confirm-modal-body">
+      <div class="confirm-summary">
+        <div class="confirm-summary-card"><span>Achievement</span><strong id="confirm-achievement-count">0</strong></div>
+        <div class="confirm-summary-card"><span>Downtime Event</span><strong id="confirm-downtime-count">0</strong></div>
+      </div>
+      <div class="confirm-replace-note"><span>↻</span><div><strong>Full Replace Database</strong><br>Data achievement dan downtime Extruder yang tersimpan saat ini akan diganti dengan data dari workbook ini.</div></div>
+      <div class="confirm-duplicate-note" id="confirm-duplicate-note"></div>
+    </div>
+    <div class="confirm-modal-actions">
+      <button type="button" class="confirm-btn cancel" onclick="closeSubmitModal()">Batalkan</button>
+      <button type="button" class="confirm-btn primary" onclick="confirmSubmitData()">Konfirmasi &amp; Sinkronkan</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script>
+const SUPABASE_URL = 'https://bmnhtxalfsfaefacgtpm.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_VItBKenz-q2sYz7MsibODA_nYtLXv9Q';
+const { createClient } = supabase;
+const db = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+let parsedRows = []; // hasil parsing achievement final, siap dikirim ke Supabase
+let parsedDowntimeRows = []; // hasil parsing sheet Downtime
+let pendingSubmitRows = [];
+let pendingDuplicateCount = 0;
+
+function toggleMenu() {
+    const s = document.getElementById('sidebar');
+    s.style.left = s.style.left === '0px' ? '-250px' : '0px';
+}
+
+const dropZone = document.getElementById('upload-zone');
+const fileInput = document.getElementById('file-input');
+
+['dragover'].forEach(evt => dropZone.addEventListener(evt, e => {
+    e.preventDefault(); dropZone.classList.add('dragover');
+}));
+['dragleave', 'drop'].forEach(evt => dropZone.addEventListener(evt, e => {
+    e.preventDefault(); dropZone.classList.remove('dragover');
+}));
+dropZone.addEventListener('drop', e => {
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+        handleFile(e.dataTransfer.files[0]);
+    }
+});
+fileInput.addEventListener('change', e => {
+    if (e.target.files && e.target.files[0]) handleFile(e.target.files[0]);
+});
+
+// PENTING: pakai method UTC (getUTCFullYear/getUTCMonth/getUTCDate), BUKAN
+// getFullYear/getMonth/getDate biasa. SheetJS selalu membuat objek Date dari
+// sel tanggal Excel dalam UTC (misal "2026-08-12T00:00:00.000Z"). Kalau pakai
+// method lokal, hasilnya tergantung timezone sistem komputer/browser — kalau
+// timezone-nya di belakang UTC, semua tanggal akan geser mundur 1 hari.
+function toYMD(d) {
+    const y = d.getUTCFullYear();
+    const m = String(d.getUTCMonth() + 1).padStart(2, '0');
+    const day = String(d.getUTCDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+}
+
+function fmtDateID(ymd) {
+    if (!ymd) return '';
+    return new Date(ymd + 'T00:00:00').toLocaleDateString('id-ID', { day:'2-digit', month:'short', year:'numeric' });
+}
+
+// Helper: sel kosong (null/undefined/string kosong) -> null (BUKAN 0).
+// Ini penting supaya "shift tidak running" (kosong) tidak tertukar dengan
+// "shift running tapi hasilnya nol".
+function toNumOrNull(v) {
+    if (v === null || v === undefined || v === '') return null;
+    const n = Number(v);
+    return Number.isFinite(n) ? n : null;
+}
+
+
+// Pastikan hanya satu record untuk setiap kombinasi tanggal + shift.
+// Jika ada duplikat di workbook, nilai non-kosong pada baris berikutnya
+// melengkapi record yang sudah ada. Ini mencegah error ON CONFLICT ganda.
+function dedupeAchievementRows(rows) {
+    const map = new Map();
+    let duplicateCount = 0;
+
+    rows.forEach(row => {
+        const key = `${row.tanggal}|${row.shift}`;
+        if (!map.has(key)) {
+            map.set(key, { ...row });
+            return;
+        }
+
+        duplicateCount++;
+        const prev = map.get(key);
+        map.set(key, {
+            tanggal: row.tanggal,
+            shift: row.shift,
+            target_adukan: row.target_adukan !== null ? row.target_adukan : prev.target_adukan,
+            realisasi_adukan: row.realisasi_adukan !== null ? row.realisasi_adukan : prev.realisasi_adukan,
+            target_sfg_oven: row.target_sfg_oven !== null ? row.target_sfg_oven : prev.target_sfg_oven,
+            realisasi_sfg_oven: row.realisasi_sfg_oven !== null ? row.realisasi_sfg_oven : prev.realisasi_sfg_oven,
+        });
+    });
+
+    return { rows: Array.from(map.values()), duplicateCount };
+}
+
+function handleFile(file) {
+    document.getElementById('file-chip-area').innerHTML = `
+        <div class="file-chip">
+            📄 ${file.name}
+            <button onclick="resetForm()" title="Hapus file">✕</button>
+        </div>
+    `;
+    document.getElementById('preview-area').innerHTML = '<p style="color:#9ca3af; font-size:13px; margin-top:14px;">Membaca file...</p>';
+    document.getElementById('submit-card').style.display = 'none';
+    document.getElementById('status-line').textContent = '';
+    document.getElementById('status-line').className = 'status-line';
+
+    const reader = new FileReader();
+    reader.onload = e => {
+        try {
+            parseWorkbook(e.target.result);
+        } catch (err) {
+            console.error(err);
+            document.getElementById('preview-area').innerHTML =
+                `<div class="warn-box"><b>Gagal membaca file</b>${err.message || err}</div>`;
+        }
+    };
+    reader.readAsArrayBuffer(file);
+}
+
+function parseExcelDateValue(raw) {
+    if (raw === null || raw === undefined || raw === '') return null;
+    if (typeof raw === 'number') {
+        const parsed = XLSX.SSF.parse_date_code(raw);
+        if (parsed) return `${parsed.y}-${String(parsed.m).padStart(2,'0')}-${String(parsed.d).padStart(2,'0')}`;
+    }
+    if (raw instanceof Date) return toYMD(raw);
+    if (typeof raw === 'string' && raw.trim()) {
+        const m = raw.trim().match(/^(\d{4})-(\d{2})-(\d{2})/);
+        if (m) return `${m[1]}-${m[2]}-${m[3]}`;
+        const d = new Date(raw);
+        if (!isNaN(d)) return toYMD(d);
+    }
+    return null;
+}
+
+function parseExcelTime(raw) {
+    if (raw === null || raw === undefined || raw === '') return null;
+    let totalMinutes = null;
+    if (typeof raw === 'number') {
+        totalMinutes = ((raw % 1) + 1) % 1 * 1440;
+    } else if (raw instanceof Date) {
+        totalMinutes = raw.getUTCHours() * 60 + raw.getUTCMinutes() + raw.getUTCSeconds() / 60;
+    } else if (typeof raw === 'string') {
+        const m = raw.trim().match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?/);
+        if (m) totalMinutes = Number(m[1]) * 60 + Number(m[2]) + Number(m[3] || 0) / 60;
+    }
+    if (totalMinutes === null || !Number.isFinite(totalMinutes)) return null;
+    const rounded = Math.round(totalMinutes);
+    const hh = String(Math.floor(rounded / 60) % 24).padStart(2, '0');
+    const mm = String(rounded % 60).padStart(2, '0');
+    return { minutes: totalMinutes, text: `${hh}:${mm}` };
+}
+
+function parseDowntimeSheet(wb) {
+    const ws = wb.Sheets['Downtime'];
+    if (!ws) return [];
+    const rows = XLSX.utils.sheet_to_json(ws, { header: 1, raw: true, defval: null });
+    const headerIdx = rows.findIndex(r => String(r[0] || '').trim().toLowerCase() === 'tanggal');
+    if (headerIdx === -1) return [];
+
+    const out = [];
+    rows.slice(headerIdx + 1).forEach(r => {
+        if (String(r[0] || '').trim().toLowerCase() === 'column1') return; // baris metadata Excel Table
+        const tanggal = parseExcelDateValue(r[0]);
+        const gedung = r[2] == null ? null : String(r[2]).trim();
+        const area = r[3] == null ? null : String(r[3]).trim();
+        const mesin = r[4] == null ? null : String(r[4]).trim();
+        const shift = Number(r[5]);
+        const start = parseExcelTime(r[6]);
+        const finish = parseExcelTime(r[7]);
+        const desc = r[9] == null ? null : String(r[9]).trim();
+
+        if (!tanggal || !mesin || !Number.isFinite(shift) || !start || !finish) return;
+        let durasi = finish.minutes - start.minutes;
+        if (durasi < 0) durasi += 1440; // downtime melewati tengah malam
+        if (!Number.isFinite(durasi) || durasi < 0) return;
+
+        out.push({
+            tanggal,
+            gedung,
+            area,
+            mesin,
+            shift,
+            start_dt: start.text,
+            finish_dt: finish.text,
+            durasi_min: +durasi.toFixed(2),
+            dt_description: desc,
+        });
+    });
+    return out;
+}
+
+function parseWorkbook(arrayBuffer) {
+    // PENTING: cellDates TIDAK dipakai lagi (sebelumnya: cellDates:true).
+    // Alasan: SheetJS mengonversi serial tanggal Excel jadi objek Date JS,
+    // dan cara konversi itu ternyata terpengaruh timezone browser dengan cara
+    // yang tidak konsisten (terbukti: tanggal bisa geser 1 hari tergantung
+    // timezone sistem, meski sudah dicoba getDate() maupun getUTCDate()).
+    // Sekarang tanggal dibaca sebagai ANGKA SERIAL EXCEL MENTAH, lalu
+    // di-parse manual lewat XLSX.SSF.parse_date_code() — murni aritmatika,
+    // tidak menyentuh objek Date/timezone sama sekali, jadi hasilnya selalu
+    // sama persis di browser/timezone manapun.
+    const wb = XLSX.read(arrayBuffer, { type: 'array' });
+    parsedDowntimeRows = parseDowntimeSheet(wb);
+    const sheetName = wb.SheetNames.includes('DATA') ? 'DATA' : wb.SheetNames[0];
+    const ws = wb.Sheets[sheetName];
+    const rows = XLSX.utils.sheet_to_json(ws, { header: 1, raw: true, defval: null });
+
+    // Cari baris header (yang kolom pertamanya "Tanggal") — supaya tidak tergantung
+    // posisi baris judul di atasnya.
+    let headerIdx = rows.findIndex(r => (r[0] || '').toString().trim().toLowerCase() === 'tanggal');
+    if (headerIdx === -1) {
+        document.getElementById('preview-area').innerHTML =
+            `<div class="warn-box"><b>Format tidak dikenali</b>Tidak ditemukan kolom header "Tanggal" pada sheet "${sheetName}". Pastikan file sesuai format achievement extruder.</div>`;
+        return;
+    }
+
+    const dataRows = rows.slice(headerIdx + 1);
+    const good = [];
+    const skipped = [];
+    let notRunCount = 0;
+
+    dataRows.forEach((r, i) => {
+        const [tanggalRaw, week, bulan, shift, targetAdukan, realisasiAdukan, , targetSfg, realisasiSfg] = r;
+
+        if (tanggalRaw === null || tanggalRaw === undefined || shift === null || shift === undefined) {
+            return; // baris kosong, dilewati diam-diam
+        }
+
+        const tanggal = parseExcelDateValue(tanggalRaw);
+
+        if (!tanggal) {
+            skipped.push({ line: headerIdx + 2 + i, reason: 'Tanggal tidak valid' });
+            return;
+        }
+
+        // Sel kosong disimpan sebagai null (bukan 0) supaya shift yang tidak
+        // running tetap bisa dibedakan dari shift yang running dengan hasil nol.
+        const row = {
+            tanggal,
+            shift: Number(shift),
+            target_adukan: toNumOrNull(targetAdukan),
+            realisasi_adukan: toNumOrNull(realisasiAdukan),
+            target_sfg_oven: toNumOrNull(targetSfg),
+            realisasi_sfg_oven: toNumOrNull(realisasiSfg),
+        };
+
+        if (!Number.isFinite(row.shift)) {
+            skipped.push({ line: headerIdx + 2 + i, reason: 'Shift tidak valid' });
+            return;
+        }
+
+        const isNotRunning =
+            row.target_adukan === null && row.realisasi_adukan === null &&
+            row.target_sfg_oven === null && row.realisasi_sfg_oven === null;
+        if (isNotRunning) notRunCount++;
+
+        good.push(row);
+    });
+
+    const deduped = dedupeAchievementRows(good);
+    parsedRows = deduped.rows;
+
+    const finalNotRunCount = parsedRows.filter(r =>
+        r.target_adukan === null && r.realisasi_adukan === null &&
+        r.target_sfg_oven === null && r.realisasi_sfg_oven === null
+    ).length;
+
+    renderPreview(parsedRows, skipped, finalNotRunCount, deduped.duplicateCount);
+}
+
+function renderPreview(rows, skipped, notRunCount, duplicateCount = 0) {
+    const area = document.getElementById('preview-area');
+
+    if (rows.length === 0) {
+        area.innerHTML = `<div class="warn-box"><b>Tidak ada baris data yang valid</b>Periksa kembali isi file Excel.</div>`;
+        document.getElementById('submit-card').style.display = 'none';
+        return;
+    }
+
+    const dates = rows.map(r => r.tanggal).sort();
+    const minDate = dates[0], maxDate = dates[dates.length - 1];
+    const runningCount = rows.length - notRunCount;
+
+    let html = `
+        <div class="preview-summary">
+            <div class="preview-stat"><div class="num">${rows.length}</div><div class="lbl">Total Baris</div></div>
+            <div class="preview-stat"><div class="num">${runningCount}</div><div class="lbl">Shift Running</div></div>
+            <div class="preview-stat"><div class="num">${notRunCount}</div><div class="lbl">Shift Tidak Running</div></div>
+            <div class="preview-stat"><div class="num">${fmtDateID(minDate)}</div><div class="lbl">Tanggal Awal</div></div>
+            <div class="preview-stat"><div class="num">${fmtDateID(maxDate)}</div><div class="lbl">Tanggal Akhir</div></div>
+            <div class="preview-stat"><div class="num">${parsedDowntimeRows.length}</div><div class="lbl">Downtime Event</div></div>
+            <div class="preview-stat"><div class="num">${Math.round(parsedDowntimeRows.reduce((s,r)=>s+(r.durasi_min||0),0))}</div><div class="lbl">Downtime (menit)</div></div>
+        </div>
+    `;
+
+    if (skipped.length > 0) {
+        html += `<div class="warn-box"><b>${skipped.length} baris dilewati</b>Baris dengan tanggal/shift tidak valid tidak ikut disubmit (contoh baris Excel: ${skipped.slice(0,5).map(s=>s.line).join(', ')}${skipped.length>5?', ...':''}).</div>`;
+    }
+
+    if (duplicateCount > 0) {
+        html += `<div class="warn-box"><b>${duplicateCount} duplikat tanggal + shift dirapikan otomatis</b>Satu tanggal/shift hanya dikirim satu kali ke database. Nilai non-kosong dari baris duplikat sudah digabung.</div>`;
+    }
+
+    const cell = v => v === null ? '<span class="empty-cell">–</span>' : v;
+    const previewRows = rows.slice(0, 15);
+    html += `
+        <div class="preview-table-wrap">
+            <table class="preview-table">
+                <thead><tr>
+                    <th>Tanggal</th><th>Shift</th><th>Target Adukan</th><th>Realisasi Adukan</th>
+                    <th>Target SFG Oven</th><th>Realisasi SFG Oven</th>
+                </tr></thead>
+                <tbody>
+                    ${previewRows.map(r => {
+                        const isNotRunning = r.target_adukan === null && r.realisasi_adukan === null &&
+                            r.target_sfg_oven === null && r.realisasi_sfg_oven === null;
+                        return `
+                        <tr class="${isNotRunning ? 'row-notrun' : ''}">
+                            <td>${fmtDateID(r.tanggal)}</td>
+                            <td>${r.shift}</td>
+                            <td>${cell(r.target_adukan)}</td>
+                            <td>${cell(r.realisasi_adukan)}</td>
+                            <td>${cell(r.target_sfg_oven)}</td>
+                            <td>${cell(r.realisasi_sfg_oven)}</td>
+                        </tr>
+                    `;}).join('')}
+                </tbody>
+            </table>
+        </div>
+        ${rows.length > 15 ? `<p style="color:#9ca3af; font-size:11px; margin-top:6px;">Menampilkan 15 dari ${rows.length} baris.</p>` : ''}
+    `;
+
+    area.innerHTML = html;
+    document.getElementById('submit-card').style.display = 'block';
+}
+
+function resetForm() {
+    parsedRows = [];
+    parsedDowntimeRows = [];
+    fileInput.value = '';
+    document.getElementById('file-chip-area').innerHTML = '';
+    document.getElementById('preview-area').innerHTML = '';
+    document.getElementById('submit-card').style.display = 'none';
+    document.getElementById('status-line').textContent = '';
+    document.getElementById('status-line').className = 'status-line';
+    document.getElementById('progress-track').style.display = 'none';
+}
+
+function submitData() {
+    if (parsedRows.length === 0) return;
+
+    // Defensive dedupe tepat sebelum submit agar satu batch tidak pernah
+    // mengandung key tanggal + shift yang sama.
+    const finalData = dedupeAchievementRows(parsedRows);
+    pendingSubmitRows = finalData.rows;
+    pendingDuplicateCount = finalData.duplicateCount;
+    parsedRows = pendingSubmitRows;
+
+    document.getElementById('confirm-achievement-count').textContent = pendingSubmitRows.length.toLocaleString('id-ID');
+    document.getElementById('confirm-downtime-count').textContent = parsedDowntimeRows.length.toLocaleString('id-ID');
+    const duplicateNote = document.getElementById('confirm-duplicate-note');
+    if (pendingDuplicateCount > 0) {
+        duplicateNote.textContent = `${pendingDuplicateCount} duplikat tanggal + shift sudah dirapikan otomatis sebelum sinkronisasi.`;
+        duplicateNote.classList.add('show');
+    } else {
+        duplicateNote.textContent = '';
+        duplicateNote.classList.remove('show');
+    }
+
+    const modal = document.getElementById('submit-confirm-modal');
+    modal.classList.add('show');
+    modal.setAttribute('aria-hidden','false');
+    document.body.classList.add('modal-open');
+}
+
+function closeSubmitModal() {
+    const modal = document.getElementById('submit-confirm-modal');
+    modal.classList.remove('show');
+    modal.setAttribute('aria-hidden','true');
+    document.body.classList.remove('modal-open');
+}
+
+function handleSubmitModalBackdrop(event) {
+    if (event.target && event.target.id === 'submit-confirm-modal') closeSubmitModal();
+}
+
+document.addEventListener('keydown', event => {
+    const modal = document.getElementById('submit-confirm-modal');
+    if (event.key === 'Escape' && modal && modal.classList.contains('show')) closeSubmitModal();
+});
+
+async function confirmSubmitData() {
+    if (!pendingSubmitRows.length) return;
+    const submitRows = pendingSubmitRows;
+    closeSubmitModal();
+
+    const btn = document.getElementById('btn-submit');
+    const status = document.getElementById('status-line');
+    const track = document.getElementById('progress-track');
+    const fill = document.getElementById('progress-fill');
+
+    btn.disabled = true;
+    track.style.display = 'block';
+    fill.style.width = '5%';
+    status.className = 'status-line busy';
+    status.textContent = 'Menghapus data lama...';
+
+    try {
+        // Preflight: pastikan tabel downtime sudah dibuat SEBELUM menghapus data lama.
+        const { error: downtimeTableError } = await db
+            .from('extruder_downtime')
+            .select('id')
+            .limit(1);
+        if (downtimeTableError) {
+            throw new Error('Tabel extruder_downtime belum tersedia. Jalankan setup_extruder_downtime.sql di Supabase terlebih dahulu.');
+        }
+
+        const { error: delError } = await db
+            .from('extruder_daily')
+            .delete()
+            .gte('tanggal', '1900-01-01');
+
+        if (delError) throw new Error('Gagal menghapus data lama: ' + delError.message);
+
+        const { error: delDowntimeError } = await db
+            .from('extruder_downtime')
+            .delete()
+            .gte('tanggal', '1900-01-01');
+        if (delDowntimeError) throw new Error('Gagal menghapus downtime lama: ' + delDowntimeError.message);
+
+        // Verifikasi: pastikan data lama benar-benar bersih sebelum insert data baru.
+        const { count: sisaCount, error: countError } = await db
+            .from('extruder_daily')
+            .select('*', { count: 'exact', head: true });
+
+        if (!countError && sisaCount > 0) {
+            status.textContent = `Menghapus sisa ${sisaCount} baris data lama...`;
+            await db.from('extruder_daily').delete().gte('tanggal', '1900-01-01');
+        }
+
+        fill.style.width = '20%';
+        status.textContent = `Mengirim data baru (0 / ${submitRows.length})...`;
+
+        const batchSize = 500;
+        let sent = 0;
+        for (let i = 0; i < submitRows.length; i += batchSize) {
+            const batch = submitRows.slice(i, i + batchSize);
+            const { error: insError } = await db
+                .from('extruder_daily')
+                .upsert(batch, { onConflict: 'tanggal,shift' });
+            if (insError) throw new Error('Gagal menyimpan data baru: ' + insError.message);
+            sent += batch.length;
+            const pct = 20 + Math.round((sent / submitRows.length) * 55);
+            fill.style.width = pct + '%';
+            status.textContent = `Mengirim data baru (${sent} / ${submitRows.length})...`;
+        }
+
+        fill.style.width = '75%';
+        status.textContent = `Mengirim downtime (0 / ${parsedDowntimeRows.length})...`;
+        let downtimeSent = 0;
+        for (let i = 0; i < parsedDowntimeRows.length; i += batchSize) {
+            const batch = parsedDowntimeRows.slice(i, i + batchSize);
+            const { error: dtError } = await db.from('extruder_downtime').insert(batch);
+            if (dtError) throw new Error('Gagal menyimpan downtime: ' + dtError.message);
+            downtimeSent += batch.length;
+            const pct = 75 + Math.round((downtimeSent / Math.max(parsedDowntimeRows.length, 1)) * 25);
+            fill.style.width = pct + '%';
+            status.textContent = `Mengirim downtime (${downtimeSent} / ${parsedDowntimeRows.length})...`;
+        }
+        fill.style.width = '100%';
+        status.className = 'status-line ok';
+        status.textContent = `✅ Berhasil. ${submitRows.length} baris achievement dan ${parsedDowntimeRows.length} kejadian downtime tersimpan. Cek di Dashboard Utama.`;
+    } catch (err) {
+        console.error(err);
+        status.className = 'status-line err';
+        status.textContent = '❌ ' + (err.message || 'Terjadi kesalahan saat submit.');
+    } finally {
+        btn.disabled = false;
+    }
+}
+</script>
+</body>
+</html>

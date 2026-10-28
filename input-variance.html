@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Input Variance Material - Bojonegoro Monitoring</title>
+<style>
+:root{--primary:#1268e8;--accent:#7c3aed;--pink:#db2777;--ink:#172033;--muted:#6b7a90;--line:#e5ebf3;--success:#16a34a;--danger:#dc2626;}
+*{box-sizing:border-box} body{margin:0;font-family:Arial,sans-serif;color:var(--ink);background:radial-gradient(circle at 8% 3%,rgba(18,104,232,.12),transparent 25%),radial-gradient(circle at 92% 5%,rgba(124,58,237,.09),transparent 25%),linear-gradient(145deg,#eef5ff,#f8fafc 48%,#f6f0ff);min-height:100vh}
+.topbar{position:fixed;top:0;left:0;right:0;height:70px;z-index:1000;display:flex;align-items:center;gap:14px;padding:0 26px;background:rgba(255,255,255,.86);backdrop-filter:blur(16px);border-bottom:1px solid #e6edf6;box-shadow:0 6px 24px rgba(38,70,113,.06)}
+.topbar h2{margin:0;font-size:18px}.topbar h2 small{display:block;margin-top:2px;color:#94a3b8;font-size:9px;letter-spacing:.08em;text-transform:uppercase}.menu-btn{width:39px;height:39px;display:grid;place-items:center;border:1px solid #dce7f4;border-radius:11px;background:#fff;color:#34516f;font-size:21px;cursor:pointer}
+.sidebar{height:100%;width:292px;position:fixed;top:0;left:-292px;z-index:1100;padding:92px 16px 28px;background:linear-gradient(180deg,#10284a,#111d34 48%,#0f172a);box-shadow:20px 0 54px rgba(11,30,56,.24);transition:left .25s;overflow-y:auto}.sidebar:before{content:'KOBE · BOJONEGORO';position:absolute;top:28px;left:24px;color:#fff;font-size:12px;font-weight:800;letter-spacing:.14em}.sidebar a{display:flex;align-items:center;min-height:46px;margin:4px 0;padding:11px 14px;border-radius:13px;color:#cad6e7;text-decoration:none;font-size:13px;font-weight:600}.sidebar a:hover{background:rgba(255,255,255,.08)}.sidebar a.active{background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff}
+.main{max-width:1050px;margin:0 auto;padding:96px 24px 42px}.hero{display:grid;grid-template-columns:1fr 280px;gap:24px;align-items:center;margin-bottom:18px;padding:28px 30px;border-radius:24px;color:#fff;background:linear-gradient(135deg,#0b63dc,#174fb6 55%,#7338d2);box-shadow:0 20px 48px rgba(25,73,157,.20)}.hero-kicker{font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;opacity:.78}.hero h1{margin:8px 0 6px;font-size:31px}.hero p{margin:0;max-width:600px;font-size:12px;line-height:1.55;opacity:.78}.hero-note{padding:15px;border:1px solid rgba(255,255,255,.2);border-radius:17px;background:rgba(255,255,255,.11);font-size:11px;line-height:1.45}
+.card{padding:22px;margin-bottom:17px;border:1px solid rgba(226,233,243,.98);border-radius:21px;background:rgba(255,255,255,.94);box-shadow:0 14px 34px rgba(38,70,113,.08)}.sec-title{margin:0 0 12px;font-size:11px;font-weight:850;color:#46576e;letter-spacing:.07em;text-transform:uppercase}.upload-box{padding:22px;border:2px dashed #d9c7f8;border-radius:15px;text-align:center;background:linear-gradient(180deg,#faf7ff,#f7fbff)}.upload-box input{font-size:12px}.hint{margin-top:8px;color:#8290a4;font-size:10px;line-height:1.5}.file-info{margin-top:10px;color:#5e6c80;font-size:10px;font-weight:700}
+.control-row{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:end;margin-top:14px}.field label{display:block;margin:0 0 5px;color:#7c899b;font-size:9px;font-weight:850;text-transform:uppercase;letter-spacing:.05em}.field select{width:100%;min-height:39px;padding:8px 10px;border:1px solid #dfe6ef;border-radius:11px;background:#fff;color:#334155;font-size:12px}.btn{min-height:39px;padding:9px 14px;border-radius:11px;border:0;cursor:pointer;font-size:11px;font-weight:800}.btn-parse{background:#eef4ff;color:#185ab8;border:1px solid #d5e4fb}.btn-save{width:100%;margin-top:14px;background:linear-gradient(135deg,#db2777,#7c3aed);color:#fff;box-shadow:0 9px 20px rgba(219,39,119,.18)}.btn:disabled{opacity:.5;cursor:not-allowed}.btn-read-all{width:100%;margin-top:14px;min-height:44px;font-size:12px}.replace-note{display:grid;gap:3px;margin-top:12px;padding:11px 13px;border:1px solid #dbeafe;border-radius:12px;background:#eff6ff;color:#31557f;font-size:10px;line-height:1.5}.replace-note b{color:#1559a7;font-size:10px;letter-spacing:.04em}.preview-selector{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:end;margin:2px 0 10px}.preview-badge{display:flex;align-items:center;justify-content:center;min-height:39px;padding:8px 12px;border:1px solid #bbf7d0;border-radius:11px;background:#f0fdf4;color:#15803d;font-size:10px;font-weight:800;white-space:nowrap}.save-warning{margin-top:8px;text-align:center;color:#7b8799;font-size:9px;line-height:1.45}@media(max-width:700px){.preview-selector{grid-template-columns:1fr}.preview-badge{white-space:normal}}
+.preview-head{display:grid;grid-template-columns:1.35fr 1fr 1fr;gap:9px;margin-top:16px}.metric{padding:12px;border:1px solid #edf0f5;border-radius:13px;background:#fbfcff}.metric span{display:block;color:#8c98aa;font-size:8px;font-weight:850;text-transform:uppercase}.metric b{display:block;margin-top:5px;font-size:18px}.metric b.over{color:var(--danger)}.metric b.saving{color:var(--success)}
+.tbl-wrap{overflow:auto;margin-top:13px;border:1px solid #e7ecf3;border-radius:14px;background:#fff}.tbl{width:100%;border-collapse:collapse;font-size:10px}.tbl th{padding:9px 8px;background:#f7f9fc;color:#718096;font-size:8px;text-transform:uppercase;white-space:nowrap}.tbl td{padding:8px;border-top:1px solid #f0f3f7;text-align:right}.tbl th:first-child,.tbl td:first-child{text-align:left}.tbl td.over{color:var(--danger);font-weight:800}.tbl td.saving{color:var(--success);font-weight:800}.status{display:none;margin-top:12px;padding:10px 12px;border-radius:10px;font-size:11px}.status.ok{display:block;background:#f0fdf4;color:#15803d;border:1px solid #bbf7d0}.status.err{display:block;background:#fef2f2;color:#b91c1c;border:1px solid #fecaca}.history-table{width:100%;border-collapse:collapse;font-size:10px}.history-table th,.history-table td{padding:8px;border-bottom:1px solid #eef2f6;text-align:right}.history-table th:first-child,.history-table td:first-child{text-align:left}.history-table th{color:#7c899b;font-size:8px;text-transform:uppercase}.history-empty{text-align:center!important;color:#9ca3af;padding:16px!important}
+@media(max-width:760px){.main{padding:84px 12px 28px}.hero{grid-template-columns:1fr;padding:22px}.control-row{grid-template-columns:1fr}.preview-head{grid-template-columns:1fr}.hero h1{font-size:27px}}
+
+/* ===== Full-sync verification + custom confirmation ===== */
+.history-summary{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0 0 10px;padding:10px 12px;border:1px solid #dbeafe;border-radius:12px;background:#f8fbff;color:#48627f;font-size:10px}.history-summary b{color:#1559a7}.history-scroll{max-height:440px;overflow:auto;border:1px solid #eef2f6;border-radius:12px}.history-scroll .history-table{margin:0}.sync-modal{position:fixed;inset:0;z-index:3000;display:none;align-items:center;justify-content:center;padding:22px;background:rgba(15,23,42,.55);backdrop-filter:blur(7px)}.sync-modal.open{display:flex}.sync-dialog{width:min(520px,100%);overflow:hidden;border:1px solid rgba(255,255,255,.8);border-radius:24px;background:#fff;box-shadow:0 28px 80px rgba(15,23,42,.28);animation:syncPop .18s ease-out}@keyframes syncPop{from{opacity:0;transform:translateY(8px) scale(.98)}to{opacity:1;transform:none}}.sync-head{padding:22px 24px 18px;color:#fff;background:linear-gradient(135deg,#1268e8,#5639c8 62%,#7c3aed)}.sync-icon{width:42px;height:42px;display:grid;place-items:center;margin-bottom:12px;border:1px solid rgba(255,255,255,.28);border-radius:14px;background:rgba(255,255,255,.14);font-size:21px}.sync-head h3{margin:0;font-size:20px}.sync-head p{margin:6px 0 0;color:rgba(255,255,255,.78);font-size:11px;line-height:1.5}.sync-body{padding:20px 24px 22px}.sync-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}.sync-stat{padding:11px;border:1px solid #e8edf4;border-radius:13px;background:#f8fafc}.sync-stat span{display:block;color:#8a98ab;font-size:8px;font-weight:850;text-transform:uppercase;letter-spacing:.05em}.sync-stat b{display:block;margin-top:4px;color:#172033;font-size:14px}.sync-file{padding:11px 12px;border-radius:12px;background:#f8fafc;color:#53657b;font-size:10px;word-break:break-word}.sync-warning{margin-top:10px;padding:11px 12px;border:1px solid #fde68a;border-radius:12px;background:#fffbeb;color:#8a5b12;font-size:10px;line-height:1.5}.sync-check{display:flex;align-items:flex-start;gap:9px;margin-top:13px;color:#475569;font-size:10px;line-height:1.45}.sync-check input{margin-top:2px}.sync-actions{display:grid;grid-template-columns:1fr 1.35fr;gap:9px;margin-top:17px}.sync-cancel,.sync-confirm{min-height:42px;border-radius:12px;font-size:11px;font-weight:800;cursor:pointer}.sync-cancel{border:1px solid #dce4ef;background:#fff;color:#52647a}.sync-confirm{border:0;background:linear-gradient(135deg,#1268e8,#7c3aed);color:#fff;box-shadow:0 9px 20px rgba(18,104,232,.18)}.sync-confirm:disabled{opacity:.42;cursor:not-allowed;box-shadow:none}@media(max-width:600px){.sync-stats{grid-template-columns:1fr}.sync-actions{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="sidebar" id="sidebar">
+<a href="index.html">Dashboard Utama</a><a href="oee.html">OEE</a><a href="tonase.html">Tonase</a><a href="waste.html">Waste</a><a href="cost-material.html">Cost Material</a><a href="input-cost-material.html">Input Cost Material</a><a href="input-variance.html" class="active">📊 Input Variance</a><a href="improvement-monitoring.html">Improvement Monitoring</a><a href="smartway.html">🛠️ Smart Way</a><a href="settings.html">⚙️ Settings</a>
+</div>
+<div class="topbar"><span class="menu-btn" onclick="toggleMenu()">☰</span><h2>Input Variance Material<small>Weekly + Monthly · Factory Bojonegoro</small></h2></div>
+<div class="main">
+<section class="hero"><div><div class="hero-kicker">Material Variance Weekly</div><h1>Upload Excel Mingguan</h1><p>Gunakan file <b>Material Variance Weekly Bojo 2026</b> dengan struktur sheet Data, Order Type, dan DB. Sistem membaca seluruh periode di workbook dan menjadikan file terbaru sebagai sumber data variance utama untuk tampilan Weekly maupun Monthly.</p></div><div class="hero-note"><b>Workflow full replace</b><br>1. Upload workbook terbaru<br>2. Sistem membaca semua week & bulan<br>3. Preview week mana pun untuk pengecekan<br>4. Simpan — database disinkronkan penuh dengan Excel terbaru</div></section>
+
+<div class="card"><div class="sec-title">📤 Upload Source Excel</div><div class="upload-box"><input type="file" id="file-excel" accept=".xlsx,.xls"><div class="hint">Format harus mengikuti workbook contoh. Sistem akan membaca <b>seluruh baris pada sheet Data</b> dan seluruh week dan bulan yang tersedia. Week dan bulan dihitung dari <b>Scheduled start</b>, sehingga tidak bergantung pada formula Excel di browser.</div><div class="file-info" id="file-info"></div></div><button class="btn btn-parse btn-read-all" id="btn-parse">📖 Baca Seluruh Periode dari Excel</button><div class="status" id="parse-status"></div><div class="replace-note"><b>Mode sinkronisasi: FULL REPLACE</b><span>Saat disimpan, database variance lama akan disesuaikan agar sama dengan seluruh isi workbook Excel terbaru — bukan hanya week yang sedang dipreview.</span></div></div>
+
+<div class="card" id="preview-card" style="display:none"><div class="sec-title">📊 Preview — Sama dengan Pivot Excel</div><div class="preview-selector"><div class="field"><label>Preview week saja — tidak memengaruhi data yang di-upload</label><select id="week-select"><option>—</option></select></div><div class="preview-badge" id="all-week-badge">Semua week & bulan akan disimpan</div></div><div id="preview-caption" class="hint" style="margin-top:8px"></div><div class="preview-head"><div class="metric"><span>Variance Value</span><b id="pv-value">—</b></div><div class="metric"><span>% Variance Value</span><b id="pv-pct-value">—</b></div><div class="metric"><span>% Variance Qty</span><b id="pv-pct-qty">—</b></div></div><div class="tbl-wrap"><table class="tbl"><thead><tr><th>Material Group</th><th>Variance Value</th><th>% Var Value</th><th>% Var Qty</th></tr></thead><tbody id="preview-group-body"></tbody></table></div><div class="hint" id="preview-detail"></div><button class="btn btn-save" id="btn-save">🔄 REPLACE DATABASE DENGAN SEMUA DATA EXCEL</button><div class="save-warning">Tombol ini menyimpan <b>seluruh week dan bulan</b> dari workbook. Week yang dipilih di atas hanya untuk melihat preview.</div><div class="status" id="save-status"></div></div>
+
+<div class="card"><div class="sec-title">🕘 Riwayat Import Weekly</div><div class="history-summary" id="history-summary"><span>Memeriksa seluruh periode di database...</span><b>—</b></div><div class="history-scroll"><table class="history-table"><thead><tr><th>Week</th><th>Kelompok Data</th><th>Variance Value</th><th>Upload</th></tr></thead><tbody id="history-body"><tr><td colspan="4" class="history-empty">Memuat...</td></tr></tbody></table></div></div>
+</div>
+<div class="sync-modal" id="sync-modal" aria-hidden="true">
+  <div class="sync-dialog" role="dialog" aria-modal="true" aria-labelledby="sync-title">
+    <div class="sync-head"><div class="sync-icon">↻</div><h3 id="sync-title">Sinkronkan Semua Data Variance?</h3><p>Database akan dibuat sama dengan seluruh isi sheet Data pada workbook terbaru.</p></div>
+    <div class="sync-body">
+      <div class="sync-stats"><div class="sync-stat"><span>Week</span><b id="modal-weeks">—</b></div><div class="sync-stat"><span>Kelompok Data</span><b id="modal-rows">—</b></div><div class="sync-stat"><span>Rentang</span><b id="modal-range">—</b></div></div>
+      <div class="sync-file" id="modal-file">—</div>
+      <div class="sync-warning"><b>Full replace:</b> data variance lama akan dikosongkan, lalu seluruh data dari Excel ini dimasukkan kembali. Status sukses hanya muncul setelah jumlah week dan bulan di database terverifikasi sama dengan Excel.</div>
+      <label class="sync-check"><input type="checkbox" id="sync-ack"><span>Saya memahami bahwa workbook ini akan menjadi sumber data variance utama dan seluruh week dan bulan di dalamnya akan disinkronkan.</span></label>
+      <div class="sync-actions"><button type="button" class="sync-cancel" id="sync-cancel">Batal</button><button type="button" class="sync-confirm" id="sync-confirm" disabled>Ya, Sinkronkan Semua Data</button></div>
+    </div>
+  </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+const SUPABASE_URL='https://bmnhtxalfsfaefacgtpm.supabase.co';
+const SUPABASE_KEY='sb_publishable_VItBKenz-q2sYz7MsibODA_nYtLXv9Q';
+const {createClient}=supabase; const db=createClient(SUPABASE_URL,SUPABASE_KEY);
+let workbookRows=[]; let weekList=[]; let monthList=[]; let sourceFile='';
+function toggleMenu(){const s=document.getElementById('sidebar');s.style.left=s.style.left==='0px'?`-${s.offsetWidth}px`:'0px';}
+function norm(v){return String(v??'').trim();} function num(v){const n=Number(v);return Number.isFinite(n)?n:0;}
+function fmtRp(v){const n=Math.round(Number(v)||0);return(n<0?'-Rp '+Math.abs(n).toLocaleString('id-ID'):'Rp '+n.toLocaleString('id-ID'));}
+function fmtPct(v){return v===null||v===undefined?'—':(Number(v)*100).toFixed(2)+'%';}
+function metric(rows){const tq=rows.reduce((s,r)=>s+r.target_qty,0),aq=rows.reduce((s,r)=>s+r.actual_qty,0),tc=rows.reduce((s,r)=>s+r.target_cost,0),ac=rows.reduce((s,r)=>s+r.actual_cost,0),vv=ac-tc;return{tq,aq,tc,ac,vv,pv:tc!==0?vv/tc:null,pq:tq!==0?(aq-tq)/tq:null};}
+function excelWeekNum(d){const jan1=new Date(d.getFullYear(),0,1);const day=Math.floor((new Date(d.getFullYear(),d.getMonth(),d.getDate())-jan1)/86400000);return Math.floor((day+jan1.getDay())/7)+1;}
+function parseDate(v){if(v instanceof Date&&!isNaN(v))return v;if(typeof v==='number'){const p=XLSX.SSF.parse_date_code(v);if(p)return new Date(p.y,p.m-1,p.d);}const d=new Date(v);return isNaN(d)?null:d;}
+function aoaSheet(wb,name){const actual=wb.SheetNames.find(n=>n.trim().toLowerCase()===name.toLowerCase());if(!actual)throw new Error(`Sheet "${name}" tidak ditemukan.`);return XLSX.utils.sheet_to_json(wb.Sheets[actual],{header:1,raw:true,defval:null,cellDates:true});}
+function headerMap(aoa,required){let idx=-1;for(let r=0;r<Math.min(20,aoa.length);r++){const vals=(aoa[r]||[]).map(x=>norm(x).toLowerCase());if(required.every(k=>vals.includes(k.toLowerCase()))){idx=r;break;}}if(idx<0)throw new Error('Header sheet Data tidak sesuai workbook contoh.');const h=(aoa[idx]||[]).map(norm);const col=(...names)=>h.findIndex(x=>names.some(n=>x.toLowerCase()===n.toLowerCase()));return{idx,col};}
+function mapOrderType(wb){const a=aoaSheet(wb,'Order Type'),mOrder=new Map(),mGroup=new Map();for(let i=1;i<a.length;i++){if(a[i]?.[0])mOrder.set(norm(a[i][0]),norm(a[i][2]));if(a[i]?.[6])mGroup.set(norm(a[i][6]),norm(a[i][7]));}return{mOrder,mGroup};}
+function mapDb(wb){const a=aoaSheet(wb,'DB'),m=new Map();for(let i=1;i<a.length;i++)if(a[i]?.[0])m.set(norm(a[i][0]),norm(a[i][1]));return m;}
+function parseWorkbook(wb){
+ const data=aoaSheet(wb,'Data'),{mOrder,mGroup}=mapOrderType(wb),lineMap=mapDb(wb);
+ const {idx,col}=headerMap(data,['Scheduled start','Short Text','Target Est. Qty','Total Actual Qty','Total Actual Costs']);
+ const cDate=col('Scheduled start'),cWeek=col('Week'),cOrderType=col('Order Type'),cGed=col('Gedung'),cMD=col('Material Description'),cOrigin=col('Origin'),cShort=col('Short Text'),cMG=col('Material Group'),cTQ=col('Target Est. Qty'),cAQ=col('Total Actual Qty'),cTC=col('Target Est. Cost'),cAC=col('Total Actual Costs'),cDesc=col('Description'),cLine=col('Line'),cWC=col('Work Center'),cMP=col('Moving Price');
+ if([cDate,cShort,cTQ,cAQ,cAC].some(x=>x<0))throw new Error('Kolom wajib pada sheet Data tidak lengkap.');
+ const agg=new Map();
+ for(let i=idx+1;i<data.length;i++){
+   const r=data[i]||[]; const dt=parseDate(r[cDate]); if(!dt)continue;
+   const year=dt.getFullYear(), month=dt.getMonth()+1;
+   // Weekly harus mengikuti kolom Week pada Excel agar 1:1 dengan Pivot (WEEKNUM(...,1)).
+   // Jika cached formula Week tidak tersedia di browser, baru fallback dihitung dari Scheduled start.
+   const weekFromExcel=cWeek>=0?Number(r[cWeek]):NaN;
+   const week=Number.isFinite(weekFromExcel)&&weekFromExcel>0?Math.trunc(weekFromExcel):excelWeekNum(dt);
+   const orderType=cOrderType>=0?norm(r[cOrderType]):'';
+   const ged=(cGed>=0?norm(r[cGed]):'')||mOrder.get(orderType)||'';
+   const origin=cOrigin>=0?norm(r[cOrigin]):'';
+   const mg=(cMG>=0?norm(r[cMG]):'')||mGroup.get(origin.charAt(0))||'';
+   const short=norm(r[cShort]); if(!short)continue;
+   const desc=cDesc>=0?norm(r[cDesc]):'';
+   const line=(cLine>=0?norm(r[cLine]):'')||lineMap.get(desc)||desc;
+   const workCenter=cWC>=0?norm(r[cWC]):'';
+   const md=cMD>=0?norm(r[cMD]):'';
+   const tq=num(r[cTQ]),aq=num(r[cAQ]),ac=num(r[cAC]);
+   let tc=cTC>=0?num(r[cTC]):0;
+   if(!tc){let mp=cMP>=0?num(r[cMP]):0;if(!mp&&aq)mp=ac/aq;tc=mp*tq;}
+   const key=[year,month,week,ged,mg,short,line,workCenter,md].join('|');
+   if(!agg.has(key))agg.set(key,{tahun:year,bulan:month,minggu_ke:week,gedung:ged,material_group:mg,short_text:short,line,work_center:workCenter,material_description:md,target_qty:0,actual_qty:0,target_cost:0,actual_cost:0,row_count:0});
+   const a=agg.get(key);a.target_qty+=tq;a.actual_qty+=aq;a.target_cost+=tc;a.actual_cost+=ac;a.row_count++;
+ }
+ workbookRows=[...agg.values()];
+ if(!workbookRows.length)throw new Error('Tidak ada baris variance yang berhasil dibaca.');
+ const seenWeeks=new Map(),seenMonths=new Map();
+ workbookRows.forEach(r=>{
+   const wk=`${r.tahun}-${r.minggu_ke}`; if(!seenWeeks.has(wk))seenWeeks.set(wk,{key:wk,tahun:r.tahun,week:r.minggu_ke});
+   const mk=`${r.tahun}-${r.bulan}`; if(!seenMonths.has(mk))seenMonths.set(mk,{key:mk,tahun:r.tahun,bulan:r.bulan});
+ });
+ weekList=[...seenWeeks.values()].sort((a,b)=>(b.tahun-a.tahun)||(b.week-a.week));
+ monthList=[...seenMonths.values()].sort((a,b)=>(b.tahun-a.tahun)||(b.bulan-a.bulan));
+}
+function classMetric(el,v){el.className=v>0?'over':v<0?'saving':'';}
+function renderPreview(){const key=document.getElementById('week-select').value;if(!key)return;const [y,w]=key.split('-').map(Number);const rows=workbookRows.filter(r=>r.tahun===y&&r.minggu_ke===w);const m=metric(rows);const ev=document.getElementById('pv-value'),epv=document.getElementById('pv-pct-value'),epq=document.getElementById('pv-pct-qty');ev.textContent=fmtRp(m.vv);epv.textContent=fmtPct(m.pv);epq.textContent=fmtPct(m.pq);classMetric(ev,m.vv);classMetric(epv,m.pv||0);classMetric(epq,m.pq||0);document.getElementById('preview-caption').textContent=`Week ${w} / ${y} · ${rows.length} kelompok data · source ${sourceFile}`;
+ const groups=[...new Set(rows.map(r=>r.material_group).filter(Boolean))].sort();document.getElementById('preview-group-body').innerHTML=groups.map(g=>{const x=metric(rows.filter(r=>r.material_group===g));const c=x.vv>0?'over':x.vv<0?'saving':'';return`<tr><td>${g}</td><td class="${c}">${fmtRp(x.vv)}</td><td class="${x.pv>0?'over':x.pv<0?'saving':''}">${fmtPct(x.pv)}</td><td class="${x.pq>0?'over':x.pq<0?'saving':''}">${fmtPct(x.pq)}</td></tr>`;}).join('');document.getElementById('preview-detail').textContent='Perhitungan mengikuti calculated field Excel: Variance Value = Total Actual Costs − Target Est. Cost; persentase dihitung setelah total Target/Actual sesuai filter.';document.getElementById('preview-card').style.display='block';}
+document.getElementById('file-excel').addEventListener('change',()=>{const f=document.getElementById('file-excel').files[0];document.getElementById('file-info').textContent=f?f.name:'';});
+document.getElementById('btn-parse').addEventListener('click',async()=>{
+ const f=document.getElementById('file-excel').files[0],st=document.getElementById('parse-status');
+ if(!f){alert('Pilih file Excel dulu.');return;}
+ try{
+   st.className='status';
+   const wb=XLSX.read(await f.arrayBuffer(),{type:'array',cellDates:true});
+   sourceFile=f.name;parseWorkbook(wb);
+   const sel=document.getElementById('week-select');
+   sel.innerHTML=weekList.map(x=>`<option value="${x.key}">Week ${x.week} / ${x.tahun}</option>`).join('');
+   sel.disabled=false;sel.value=weekList[0].key;renderPreview();
+   st.className='status ok';
+   const minW=weekList.length?weekList[weekList.length-1].week:'—',maxW=weekList.length?weekList[0].week:'—';
+   st.textContent=`Siap disinkronkan: ${weekList.length} week (Week ${minW}–${maxW}), ${monthList.length} bulan, ${workbookRows.length.toLocaleString('id-ID')} kelompok data. Monthly dihitung dari Scheduled start asli. Work Center ikut disimpan sebagai Mesin.`;
+   document.getElementById('all-week-badge').textContent=`${weekList.length} week · ${monthList.length} bulan akan disimpan`;
+ }catch(e){st.className='status err';st.textContent='Gagal membaca file: '+e.message;}
+});
+document.getElementById('week-select').addEventListener('change',renderPreview);
+document.getElementById('btn-save').addEventListener('click',()=>{if(!workbookRows.length){alert('Baca file Excel terlebih dahulu.');return;}openSyncModal();});
+function openSyncModal(){const first=weekList[weekList.length-1],last=weekList[0];document.getElementById('modal-weeks').textContent=weekList.length+' week / '+monthList.length+' bulan';document.getElementById('modal-rows').textContent=workbookRows.length.toLocaleString('id-ID');document.getElementById('modal-range').textContent=`W${first?.week??'—'}–W${last?.week??'—'}`;document.getElementById('modal-file').textContent='File: '+sourceFile;const ack=document.getElementById('sync-ack');ack.checked=false;document.getElementById('sync-confirm').disabled=true;const m=document.getElementById('sync-modal');m.classList.add('open');m.setAttribute('aria-hidden','false');}
+function closeSyncModal(){const m=document.getElementById('sync-modal');m.classList.remove('open');m.setAttribute('aria-hidden','true');}
+document.getElementById('sync-ack').addEventListener('change',e=>{document.getElementById('sync-confirm').disabled=!e.target.checked;});
+document.getElementById('sync-cancel').addEventListener('click',closeSyncModal);
+document.getElementById('sync-modal').addEventListener('click',e=>{if(e.target.id==='sync-modal')closeSyncModal();});
+document.getElementById('sync-confirm').addEventListener('click',async()=>{closeSyncModal();await fullReplaceVariance();});
+async function verifyAllWeeks(){const expected=new Map();workbookRows.forEach(r=>{const k=`${r.tahun}-${r.minggu_ke}`;expected.set(k,(expected.get(k)||0)+1);});const checks=[];for(const w of weekList){const {count,error}=await db.from('variance_weekly_detail').select('id',{count:'exact',head:true}).eq('tahun',w.tahun).eq('minggu_ke',w.week);if(error)throw error;const k=`${w.tahun}-${w.week}`;checks.push({key:k,expected:expected.get(k)||0,actual:count||0});}return checks;}
+async function verifyAllMonths(){const expected=new Map();workbookRows.forEach(r=>{const k=`${r.tahun}-${r.bulan}`;expected.set(k,(expected.get(k)||0)+1);});const checks=[];for(const m of monthList){const {count,error}=await db.from('variance_weekly_detail').select('id',{count:'exact',head:true}).eq('tahun',m.tahun).eq('bulan',m.bulan);if(error)throw error;const k=`${m.tahun}-${m.bulan}`;checks.push({key:k,expected:expected.get(k)||0,actual:count||0});}return checks;}
+function renderHistoryFromWorkbook(stamp){const b=document.getElementById('history-body'),sum=document.getElementById('history-summary');const map={};workbookRows.forEach(r=>{const k=`${r.tahun}-${r.minggu_ke}`;if(!map[k])map[k]={tahun:r.tahun,week:r.minggu_ke,count:0,tc:0,ac:0,up:stamp};map[k].count++;map[k].tc+=num(r.target_cost);map[k].ac+=num(r.actual_cost);});const arr=Object.values(map).sort((a,b)=>(b.tahun-a.tahun)||(b.week-a.week));sum.innerHTML=`<span>Database telah diverifikasi terhadap workbook terbaru.</span><b>${arr.length}/${weekList.length} week · ${workbookRows.length.toLocaleString('id-ID')} kelompok</b>`;b.innerHTML=arr.map(x=>`<tr><td>Week ${x.week} / ${x.tahun}</td><td>${x.count}</td><td class="${x.ac-x.tc>0?'over':'saving'}">${fmtRp(x.ac-x.tc)}</td><td>${new Date(stamp).toLocaleString('id-ID')}</td></tr>`).join('');}
+async function fullReplaceVariance(){
+ const st=document.getElementById('save-status'),btn=document.getElementById('btn-save');
+ const totalWeeks=weekList.length,totalMonths=monthList.length,stamp=new Date().toISOString();
+ const rows=workbookRows.map(r=>({...r,source_file:sourceFile,uploaded_at:stamp}));
+ btn.disabled=true;st.className='status';st.textContent='';
+ try{
+   btn.textContent='Mengosongkan data variance lama...';
+   const clear=await db.from('variance_weekly_detail').delete().gte('id',0);if(clear.error)throw clear.error;
+   for(let i=0;i<rows.length;i+=400){
+     btn.textContent=`Menyimpan ${Math.min(i+400,rows.length).toLocaleString('id-ID')} / ${rows.length.toLocaleString('id-ID')}...`;
+     const res=await db.from('variance_weekly_detail').insert(rows.slice(i,i+400));if(res.error)throw res.error;
+   }
+   btn.textContent=`Memverifikasi ${totalWeeks} week & ${totalMonths} bulan...`;
+   const [weekChecks,monthChecks]=await Promise.all([verifyAllWeeks(),verifyAllMonths()]);
+   const badWeeks=weekChecks.filter(x=>x.actual!==x.expected),badMonths=monthChecks.filter(x=>x.actual!==x.expected);
+   const totalActual=weekChecks.reduce((a,x)=>a+x.actual,0);
+   if(badWeeks.length){const miss=badWeeks.slice(0,8).map(x=>`${x.key}: ${x.actual}/${x.expected}`).join(', ');throw new Error(`Verifikasi week tidak cocok pada ${badWeeks.length} periode (${miss}${badWeeks.length>8?', ...':''}).`);}
+   if(badMonths.length){const miss=badMonths.slice(0,8).map(x=>`${x.key}: ${x.actual}/${x.expected}`).join(', ');throw new Error(`Verifikasi bulan tidak cocok pada ${badMonths.length} periode (${miss}${badMonths.length>8?', ...':''}).`);}
+   if(totalActual!==rows.length)throw new Error(`Jumlah data database ${totalActual.toLocaleString('id-ID')} tidak sama dengan Excel ${rows.length.toLocaleString('id-ID')}.`);
+   renderHistoryFromWorkbook(stamp);
+   st.className='status ok';
+   st.textContent=`Sinkronisasi & verifikasi selesai: ${totalActual.toLocaleString('id-ID')} kelompok data, ${weekChecks.length}/${totalWeeks} week dan ${monthChecks.length}/${totalMonths} bulan tersimpan lengkap dari ${sourceFile}.`;
+ }catch(e){
+   st.className='status err';
+   const errMsg=String(e.message||'');
+   let schemaHint='';
+   if(/variance_weekly_detail_uq|duplicate key|23505/i.test(errMsg)){
+     schemaHint=' Constraint database lama belum memasukkan Work Center/Mesin. Jalankan fix_variance_work_center_constraint.sql di Supabase SQL Editor, kemudian sinkronkan ulang workbook yang sama.';
+   }else if(/bulan|column/i.test(errMsg)){
+     schemaHint=' Jalankan update_variance_monthly_support.sql di Supabase SQL Editor, lalu sinkronkan ulang workbook.';
+   }
+   st.textContent='Sinkronisasi belum terverifikasi: '+errMsg+'.'+schemaHint+' Jika proses terhenti setelah pengosongan tabel, klik sinkronkan kembali menggunakan workbook yang sama.';
+ }finally{btn.disabled=false;btn.textContent='🔄 REPLACE DATABASE DENGAN SEMUA DATA EXCEL';}
+}
+async function fetchAllVarianceHistory(){
+  const pageSize=1000;
+  let from=0;
+  let all=[];
+  while(true){
+    const {data,error}=await db
+      .from('variance_weekly_detail')
+      .select('id,tahun,minggu_ke,target_cost,actual_cost,uploaded_at')
+      .order('tahun',{ascending:false})
+      .order('minggu_ke',{ascending:false})
+      .order('id',{ascending:true})
+      .range(from,from+pageSize-1);
+    if(error) throw error;
+    const rows=data||[];
+    all.push(...rows);
+    if(rows.length<pageSize) break;
+    from+=pageSize;
+  }
+  return all;
+}
+
+async function loadHistory(){
+  const b=document.getElementById('history-body');
+  b.innerHTML='<tr><td colspan="4" class="history-empty">Memuat seluruh week...</td></tr>';
+  try{
+    const rows=await fetchAllVarianceHistory();
+    const map={};
+    rows.forEach(r=>{
+      const k=`${r.tahun}-${r.minggu_ke}`;
+      if(!map[k]) map[k]={tahun:r.tahun,week:r.minggu_ke,count:0,tc:0,ac:0,up:r.uploaded_at};
+      map[k].count++;
+      map[k].tc+=num(r.target_cost);
+      map[k].ac+=num(r.actual_cost);
+      if(r.uploaded_at&&(!map[k].up||r.uploaded_at>map[k].up)) map[k].up=r.uploaded_at;
+    });
+    const arr=Object.values(map).sort((a,b)=>(b.tahun-a.tahun)||(b.week-a.week));
+    const sum=document.getElementById('history-summary');
+    if(sum) sum.innerHTML=arr.length?`<span>Periode yang terbaca dari database.</span><b>${arr.length} week · ${rows.length.toLocaleString('id-ID')} kelompok</b>`:'<span>Belum ada data variance.</span><b>0 week</b>';
+    b.innerHTML=arr.length?arr.map(x=>`<tr><td>Week ${x.week} / ${x.tahun}</td><td>${x.count}</td><td class="${x.ac-x.tc>0?'over':'saving'}">${fmtRp(x.ac-x.tc)}</td><td>${x.up?new Date(x.up).toLocaleString('id-ID'):'—'}</td></tr>`).join(''):'<tr><td colspan="4" class="history-empty">Belum ada data</td></tr>';
+  }catch(e){
+    console.error('Gagal membaca seluruh riwayat variance:',e);
+    b.innerHTML='<tr><td colspan="4" class="history-empty">Gagal membaca riwayat: '+e.message+'</td></tr>';
+  }
+}
+loadHistory();
+</script>
+</body>
+</html>

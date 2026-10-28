@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Input Parameter Smart Way</title>
+<style>
+* { box-sizing:border-box; }
+body {
+    margin:0; font-family:Arial, sans-serif; background:#f3f4f6;
+    padding-bottom:100px;
+}
+.topbar {
+    background:#1f2937; color:white; padding:16px 20px;
+    position:sticky; top:0; z-index:100;
+}
+.topbar h2 { margin:0; font-size:17px; }
+.topbar p  { margin:4px 0 0; font-size:12px; color:#9ca3af; }
+
+.main { padding:16px; max-width:640px; margin:0 auto; }
+
+.card {
+    background:white; border-radius:12px; padding:18px 18px;
+    box-shadow:0 1px 3px rgba(0,0,0,0.08);
+    margin-bottom:14px; border-top:4px solid #6366f1;
+}
+.card h3 {
+    margin:0 0 14px; font-size:13px; color:#374151; font-weight:700;
+    text-transform:uppercase; letter-spacing:0.05em;
+    display:flex; align-items:center; gap:8px;
+}
+
+.field { margin-bottom:14px; }
+.field:last-child { margin-bottom:0; }
+.field label {
+    display:block; font-size:12.5px; color:#4b5563; font-weight:600;
+    margin-bottom:6px;
+}
+.field .unit { color:#9ca3af; font-weight:400; }
+.field input, .field select, .field textarea {
+    width:100%; padding:11px 12px; border:1px solid #d1d5db; border-radius:8px;
+    font-size:15px; color:#1f2937; background:white; font-family:inherit;
+}
+.field input:focus, .field select:focus, .field textarea:focus {
+    outline:none; border-color:#6366f1; box-shadow:0 0 0 3px #e0e7ff;
+}
+.field textarea { resize:vertical; min-height:70px; }
+.grid2 { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+.grid3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; }
+@media (max-width:480px) { .grid3 { grid-template-columns:1fr 1fr; } }
+
+.gedung-display {
+    font-size:12px; color:#6366f1; font-weight:600; margin-top:6px;
+}
+
+.submit-bar {
+    position:fixed; bottom:0; left:0; width:100%;
+    background:white; padding:12px 16px; box-shadow:0 -2px 8px rgba(0,0,0,0.08);
+    box-sizing:border-box;
+}
+.btn-submit {
+    width:100%; max-width:640px; margin:0 auto; display:block;
+    background:#6366f1; color:white; border:none; padding:15px;
+    border-radius:10px; font-size:15px; font-weight:700; cursor:pointer;
+}
+.btn-submit:active { background:#4f46e5; }
+.btn-submit:disabled { background:#a5a6f6; cursor:default; }
+
+.toast {
+    position:fixed; top:70px; left:50%; transform:translateX(-50%);
+    background:#111827; color:white; padding:12px 20px; border-radius:10px;
+    font-size:13px; z-index:200; box-shadow:0 4px 12px rgba(0,0,0,0.2);
+    opacity:0; pointer-events:none; transition:opacity 0.25s;
+    max-width:90%; text-align:center;
+}
+.toast.show { opacity:1; }
+.toast.err { background:#dc2626; }
+.toast.ok  { background:#16a34a; }
+
+.required-mark { color:#dc2626; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+    <h2>📝 Input Parameter Smart Way</h2>
+    <p>Isi sesuai kondisi mesin saat ini, lalu simpan.</p>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<div class="main">
+    <form id="smartway-form">
+
+        <div class="card" style="border-top-color:#1f2937;">
+            <h3>Informasi Umum</h3>
+            <div class="grid2">
+                <div class="field">
+                    <label>Tanggal <span class="required-mark">*</span></label>
+                    <input type="date" id="f-tanggal" required>
+                </div>
+                <div class="field">
+                    <label>Shift <span class="required-mark">*</span></label>
+                    <select id="f-shift" required>
+                        <option value="">Pilih</option>
+                        <option value="1">Shift 1</option>
+                        <option value="2">Shift 2</option>
+                        <option value="3">Shift 3</option>
+                    </select>
+                </div>
+            </div>
+            <div class="field">
+                <label>Mesin <span class="required-mark">*</span></label>
+                <select id="f-mesin" required onchange="tampilkanGedung()">
+                    <option value="">Pilih mesin</option>
+                    <optgroup label="Gedung 7">
+                        <option>SW 32</option><option>SW 33</option><option>SW 34</option>
+                        <option>SW 35</option><option>SW 36</option><option>SW 37</option>
+                        <option>SW 38</option>
+                    </optgroup>
+                    <optgroup label="Gedung 4">
+                        <option>SW 39</option><option>SW 40</option>
+                        <option>SW 41</option><option>SW 42</option><option>SW 43</option>
+                        <option>SW 44</option><option>SW 45</option><option>SW 46</option>
+                    </optgroup>
+                </select>
+                <div class="gedung-display" id="gedung-display"></div>
+            </div>
+            <div class="grid2">
+                <div class="field">
+                    <label>Operator <span class="required-mark">*</span></label>
+                    <input type="text" id="f-operator" placeholder="Nama operator" required>
+                </div>
+                <div class="field">
+                    <label>SKU</label>
+                    <input type="text" id="f-sku" placeholder="Kode SKU">
+                </div>
+            </div>
+        </div>
+
+        <div class="card" style="border-top-color:#0891b2;">
+            <h3>🌡️ Temperature</h3>
+            <div class="grid3">
+                <div class="field"><label>Horizontal Seal 1 <span class="unit">(°C)</span> <span class="required-mark">*</span></label>
+                    <input type="number" step="any" inputmode="decimal" id="f-temp_hs1" required></div>
+                <div class="field"><label>Horizontal Seal 2 <span class="unit">(°C)</span> <span class="required-mark">*</span></label>
+                    <input type="number" step="any" inputmode="decimal" id="f-temp_hs2" required></div>
+                <div class="field"><label>Vertical Seal <span class="unit">(°C)</span> <span class="required-mark">*</span></label>
+                    <input type="number" step="any" inputmode="decimal" id="f-temp_vs" required></div>
+            </div>
+        </div>
+
+        <div class="card" style="border-top-color:#10b981;">
+            <h3>📏 Spesifikasi & Posisi</h3>
+            <div class="grid2">
+                <div class="field"><label>Bag Length Specification <span class="unit">(mm)</span> <span class="required-mark">*</span></label>
+                    <input type="number" step="any" inputmode="decimal" id="f-bag_length_spec" required></div>
+                <div class="field"><label>Color Code Offside <span class="unit">(mm)</span> <span class="required-mark">*</span></label>
+                    <input type="number" step="any" inputmode="decimal" id="f-color_code_offside" required></div>
+                <div class="field"><label>Hori. Seal Start Point <span class="unit">(mm)</span> <span class="required-mark">*</span></label>
+                    <input type="number" step="any" inputmode="decimal" id="f-hori_seal_start_point" required></div>
+                <div class="field"><label>Hori Seal Overflow <span class="unit">(mm)</span> <span class="required-mark">*</span></label>
+                    <input type="number" step="any" inputmode="decimal" id="f-hori_seal_overflow" required></div>
+                <div class="field"><label>Up and Down Travel <span class="unit">(mm)</span> <span class="required-mark">*</span></label>
+                    <input type="number" step="any" inputmode="decimal" id="f-up_down_travel" required></div>
+                <div class="field"><label>Fail Pack Compensation <span class="unit">(mm)</span> <span class="required-mark">*</span></label>
+                    <input type="number" step="any" inputmode="decimal" id="f-fail_pack_compensation" required></div>
+            </div>
+        </div>
+
+        <div class="card" style="border-top-color:#f59e0b;">
+            <h3>⚡ Speed & Waktu Proses</h3>
+            <div class="grid2">
+                <div class="field"><label>Preset Prod Speed <span class="unit">(ppm)</span> <span class="required-mark">*</span></label>
+                    <input type="number" step="any" inputmode="decimal" id="f-preset_prod_speed" required></div>
+                <div class="field"><label>Hori Seal Time <span class="unit">(Sec)</span> <span class="required-mark">*</span></label>
+                    <input type="number" step="any" inputmode="decimal" id="f-hori_seal_time" required></div>
+                <div class="field"><label>Cutter Time <span class="unit">(Sec)</span> <span class="required-mark">*</span></label>
+                    <input type="number" step="any" inputmode="decimal" id="f-cutter_time" required></div>
+                <div class="field"><label>Print Time <span class="unit">(Sec)</span> <span class="required-mark">*</span></label>
+                    <input type="number" step="any" inputmode="decimal" id="f-print_time" required></div>
+                <div class="field"><label>Fill Gas Time <span class="unit">(Sec)</span> <span class="required-mark">*</span></label>
+                    <input type="number" step="any" inputmode="decimal" id="f-fill_gas_time" required></div>
+                <div class="field"><label>Gusset Time <span class="unit">(Sec)</span> <span class="required-mark">*</span></label>
+                    <input type="number" step="any" inputmode="decimal" id="f-gusset_time" required></div>
+            </div>
+        </div>
+
+        <div class="card" style="border-top-color:#ef4444;">
+            <h3>⏱️ Delay</h3>
+            <div class="grid2">
+                <div class="field"><label>First Packet is Delayed <span class="unit">(Sec)</span> <span class="required-mark">*</span></label>
+                    <input type="number" step="any" inputmode="decimal" id="f-first_packet_delay" required></div>
+                <div class="field"><label>Signal Delay 1 <span class="unit">(Sec)</span> <span class="required-mark">*</span></label>
+                    <input type="number" step="any" inputmode="decimal" id="f-signal_delay_1" required></div>
+                <div class="field"><label>Signal Delay 2 <span class="unit">(Sec)</span> <span class="required-mark">*</span></label>
+                    <input type="number" step="any" inputmode="decimal" id="f-signal_delay_2" required></div>
+                <div class="field"><label>Cutter Delay <span class="unit">(Sec)</span> <span class="required-mark">*</span></label>
+                    <input type="number" step="any" inputmode="decimal" id="f-cutter_delay" required></div>
+                <div class="field"><label>Print Delay <span class="unit">(Sec)</span> <span class="required-mark">*</span></label>
+                    <input type="number" step="any" inputmode="decimal" id="f-print_delay" required></div>
+                <div class="field"><label>Fill Gas Delay <span class="unit">(Sec)</span> <span class="required-mark">*</span></label>
+                    <input type="number" step="any" inputmode="decimal" id="f-fill_gas_delay" required></div>
+                <div class="field"><label>Gusset Delay <span class="unit">(Sec)</span> <span class="required-mark">*</span></label>
+                    <input type="number" step="any" inputmode="decimal" id="f-gusset_delay" required></div>
+            </div>
+        </div>
+
+        <div class="card" style="border-top-color:#8b5cf6;">
+            <h3>🔧 Ratio & Kalibrasi</h3>
+            <div class="grid2">
+                <div class="field"><label>Pull Film Ratio 1 <span class="required-mark">*</span></label>
+                    <input type="number" step="any" inputmode="decimal" id="f-pull_film_ratio_1" required></div>
+                <div class="field"><label>Pull Film Ratio 2 <span class="required-mark">*</span></label>
+                    <input type="number" step="any" inputmode="decimal" id="f-pull_film_ratio_2" required></div>
+                <div class="field"><label>Up Down Synchronous Ratio <span class="required-mark">*</span></label>
+                    <input type="number" step="any" inputmode="decimal" id="f-up_down_sync_ratio" required></div>
+                <div class="field"><label>Verti Seal Synchronous Ratio <span class="required-mark">*</span></label>
+                    <input type="number" step="any" inputmode="decimal" id="f-verti_seal_sync_ratio" required></div>
+                <div class="field"><label>Encoder Coefficients <span class="required-mark">*</span></label>
+                    <input type="number" step="any" inputmode="decimal" id="f-encoder_coefficients" required></div>
+                <div class="field"><label>Chain Bag Number <span class="unit">(Bag)</span> <span class="required-mark">*</span></label>
+                    <input type="number" step="any" inputmode="decimal" id="f-chain_bag_number" required></div>
+                <div class="field"><label>Self-Learning Forming Torque <span class="unit">(%)</span> <span class="required-mark">*</span></label>
+                    <input type="number" step="any" inputmode="decimal" id="f-self_learning_torque" required></div>
+            </div>
+        </div>
+
+        <div class="card" style="border-top-color:#6b7280;">
+            <h3>📝 Catatan</h3>
+            <div class="field">
+                <label>Catatan (saat ada perubahan parameter)</label>
+                <textarea id="f-catatan" placeholder="Tulis kalau ada perubahan parameter atau hal penting lainnya..."></textarea>
+            </div>
+        </div>
+
+    </form>
+</div>
+
+<div class="submit-bar">
+    <button class="btn-submit" id="btn-submit" onclick="simpanData()">💾 Simpan Data</button>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL = 'https://bmnhtxalfsfaefacgtpm.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_VItBKenz-q2sYz7MsibODA_nYtLXv9Q';
+const { createClient } = supabase;
+const db = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+const GEDUNG_MAP = {
+    'SW 32':'Gedung 7', 'SW 33':'Gedung 7', 'SW 34':'Gedung 7',
+    'SW 35':'Gedung 7', 'SW 36':'Gedung 7', 'SW 37':'Gedung 7', 'SW 38':'Gedung 7',
+    'SW 39':'Gedung 4', 'SW 40':'Gedung 4',
+    'SW 41':'Gedung 4', 'SW 42':'Gedung 4', 'SW 43':'Gedung 4',
+    'SW 44':'Gedung 4', 'SW 45':'Gedung 4', 'SW 46':'Gedung 4',
+};
+
+// Set tanggal default = hari ini
+document.getElementById('f-tanggal').value = new Date().toISOString().slice(0,10);
+
+function tampilkanGedung() {
+    const mesin = document.getElementById('f-mesin').value;
+    const disp = document.getElementById('gedung-display');
+    disp.textContent = mesin ? `📍 ${GEDUNG_MAP[mesin] || ''}` : '';
+}
+
+function showToast(msg, type) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = 'toast show ' + (type || '');
+    setTimeout(() => { t.className = 'toast'; }, 3500);
+}
+
+function numOrNull(id) {
+    const v = document.getElementById(id).value;
+    return v === '' ? null : parseFloat(v);
+}
+
+const REQUIRED_NUMBER_FIELDS = [
+    'f-temp_hs1','f-temp_hs2','f-temp_vs',
+    'f-bag_length_spec','f-color_code_offside','f-hori_seal_start_point',
+    'f-hori_seal_overflow','f-up_down_travel','f-fail_pack_compensation',
+    'f-preset_prod_speed','f-hori_seal_time','f-cutter_time','f-print_time',
+    'f-fill_gas_time','f-gusset_time',
+    'f-first_packet_delay','f-signal_delay_1','f-signal_delay_2','f-cutter_delay',
+    'f-print_delay','f-fill_gas_delay','f-gusset_delay',
+    'f-pull_film_ratio_1','f-pull_film_ratio_2','f-up_down_sync_ratio',
+    'f-verti_seal_sync_ratio','f-encoder_coefficients','f-chain_bag_number',
+    'f-self_learning_torque'
+];
+
+async function simpanData() {
+    const tanggal  = document.getElementById('f-tanggal').value;
+    const shift    = document.getElementById('f-shift').value;
+    const mesin    = document.getElementById('f-mesin').value;
+    const operator = document.getElementById('f-operator').value.trim();
+
+    if (!tanggal || !shift || !mesin || !operator) {
+        showToast('⚠️ Tanggal, Shift, Mesin, dan Operator wajib diisi', 'err');
+        return;
+    }
+
+    // Validasi semua field angka wajib diisi
+    for (const id of REQUIRED_NUMBER_FIELDS) {
+        const v = document.getElementById(id).value;
+        if (v === '' || v === null) {
+            showToast('⚠️ Semua parameter wajib diisi, cek kembali field yang kosong', 'err');
+            document.getElementById(id).focus();
+            document.getElementById(id).scrollIntoView({ behavior: 'smooth', block: 'center' });
+            return;
+        }
+    }
+
+    const btn = document.getElementById('btn-submit');
+    btn.disabled = true;
+    btn.textContent = 'Menyimpan...';
+
+    const payload = {
+        tanggal, shift: parseInt(shift), mesin, gedung: GEDUNG_MAP[mesin] || null,
+        operator, sku: document.getElementById('f-sku').value.trim() || null,
+
+        // Waktu submit dicatat otomatis saat tombol simpan ditekan (timestamp lengkap, UTC ISO)
+        waktu_submit: new Date().toISOString(),
+
+        temp_hs1: numOrNull('f-temp_hs1'),
+        temp_hs2: numOrNull('f-temp_hs2'),
+        temp_vs: numOrNull('f-temp_vs'),
+
+        bag_length_spec: numOrNull('f-bag_length_spec'),
+        color_code_offside: numOrNull('f-color_code_offside'),
+        hori_seal_start_point: numOrNull('f-hori_seal_start_point'),
+        hori_seal_overflow: numOrNull('f-hori_seal_overflow'),
+        up_down_travel: numOrNull('f-up_down_travel'),
+        fail_pack_compensation: numOrNull('f-fail_pack_compensation'),
+
+        preset_prod_speed: numOrNull('f-preset_prod_speed'),
+        hori_seal_time: numOrNull('f-hori_seal_time'),
+        cutter_time: numOrNull('f-cutter_time'),
+        print_time: numOrNull('f-print_time'),
+        fill_gas_time: numOrNull('f-fill_gas_time'),
+        gusset_time: numOrNull('f-gusset_time'),
+
+        first_packet_delay: numOrNull('f-first_packet_delay'),
+        signal_delay_1: numOrNull('f-signal_delay_1'),
+        signal_delay_2: numOrNull('f-signal_delay_2'),
+        cutter_delay: numOrNull('f-cutter_delay'),
+        print_delay: numOrNull('f-print_delay'),
+        fill_gas_delay: numOrNull('f-fill_gas_delay'),
+        gusset_delay: numOrNull('f-gusset_delay'),
+
+        pull_film_ratio_1: numOrNull('f-pull_film_ratio_1'),
+        pull_film_ratio_2: numOrNull('f-pull_film_ratio_2'),
+        up_down_sync_ratio: numOrNull('f-up_down_sync_ratio'),
+        verti_seal_sync_ratio: numOrNull('f-verti_seal_sync_ratio'),
+        encoder_coefficients: numOrNull('f-encoder_coefficients'),
+        chain_bag_number: numOrNull('f-chain_bag_number'),
+        self_learning_torque: numOrNull('f-self_learning_torque'),
+
+        catatan: document.getElementById('f-catatan').value.trim() || null,
+    };
+
+    const { error } = await db.from('smartway_shiftly').insert([payload]);
+
+    btn.disabled = false;
+    btn.textContent = '💾 Simpan Data';
+
+    if (error) {
+        console.error(error);
+        showToast('❌ Gagal menyimpan: ' + error.message, 'err');
+        return;
+    }
+
+    showToast('✅ Data berhasil disimpan', 'ok');
+
+    // Reset field angka & catatan, tapi pertahankan tanggal/shift/mesin/operator
+    // supaya operator bisa lanjut input mesin berikutnya lebih cepat.
+    document.querySelectorAll('#smartway-form input[type=number]').forEach(el => el.value = '');
+    document.getElementById('f-catatan').value = '';
+    document.getElementById('f-sku').value = '';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+</script>
+</body>
+</html>

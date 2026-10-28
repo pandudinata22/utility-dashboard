@@ -1,0 +1,610 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Settings - Bojonegoro</title>
+<style>
+* { box-sizing: border-box; }
+body { margin:0; font-family:Arial, sans-serif; background:#f3f4f6; }
+.topbar {
+    background:#1f2937; color:white; padding:15px;
+    display:flex; align-items:center;
+    position:fixed; top:0; left:0; width:100%; z-index:1000;
+}
+.menu-btn { font-size:28px; cursor:pointer; margin-right:15px; }
+.sidebar {
+    height:100%; width:250px; position:fixed;
+    top:0; left:-250px; background:#111827;
+    transition:0.3s; padding-top:60px; z-index:999;
+}
+.sidebar a { display:block; color:white; padding:15px 20px; text-decoration:none; }
+.sidebar a:hover { background:#374151; }
+.sidebar a.active { background:#3b82f6; }
+.main { padding:80px 24px 40px 24px; max-width:900px; }
+
+/* Tabs */
+.tab-bar {
+    display:flex; gap:4px; margin-bottom:24px;
+    background:white; border-radius:10px; padding:6px;
+    box-shadow:0 1px 3px rgba(0,0,0,0.08); width:fit-content;
+}
+.tab-btn {
+    padding:9px 20px; border:none; border-radius:7px;
+    cursor:pointer; font-size:13px; font-weight:600;
+    background:transparent; color:#6b7280; transition:0.15s;
+}
+.tab-btn:hover { background:#f3f4f6; color:#374151; }
+.tab-btn.active { background:#1f2937; color:white; }
+
+/* Cards */
+.card {
+    background:white; border-radius:12px; padding:24px;
+    box-shadow:0 1px 3px rgba(0,0,0,0.08); margin-bottom:20px;
+}
+.card-title {
+    font-size:15px; font-weight:700; color:#1f2937;
+    margin:0 0 16px; display:flex; align-items:center; gap:8px;
+}
+
+/* Form add */
+.add-row {
+    display:flex; gap:10px; flex-wrap:wrap; align-items:flex-end; margin-bottom:20px;
+    padding-bottom:20px; border-bottom:1px solid #f3f4f6;
+}
+.fg { display:flex; flex-direction:column; gap:4px; }
+.fg label { font-size:11px; color:#6b7280; font-weight:600; text-transform:uppercase; letter-spacing:0.04em; }
+.fg input, .fg select {
+    padding:8px 12px; border:1px solid #d1d5db; border-radius:8px;
+    font-size:13px; color:#1f2937; min-width:140px;
+}
+.fg input:focus, .fg select:focus {
+    outline:none; border-color:#3b82f6; box-shadow:0 0 0 2px #dbeafe;
+}
+.fg input.wide { min-width:260px; }
+.fg input.narrow { min-width:90px; width:90px; }
+
+/* Buttons */
+.btn-add {
+    background:#1f2937; color:white; border:none;
+    padding:9px 18px; border-radius:8px; cursor:pointer; font-size:13px; font-weight:600;
+    white-space:nowrap;
+}
+.btn-add:hover { background:#374151; }
+.btn-edit {
+    background:#eff6ff; color:#2563eb; border:1px solid #bfdbfe;
+    padding:5px 12px; border-radius:6px; cursor:pointer; font-size:12px; font-weight:600;
+}
+.btn-edit:hover { background:#dbeafe; }
+.btn-del {
+    background:#fff5f5; color:#dc2626; border:1px solid #fecaca;
+    padding:5px 10px; border-radius:6px; cursor:pointer; font-size:12px;
+}
+.btn-del:hover { background:#fee2e2; }
+.btn-save-inline {
+    background:#16a34a; color:white; border:none;
+    padding:5px 12px; border-radius:6px; cursor:pointer; font-size:12px; font-weight:600;
+}
+.btn-save-inline:hover { background:#15803d; }
+.btn-cancel-inline {
+    background:#f3f4f6; color:#6b7280; border:none;
+    padding:5px 10px; border-radius:6px; cursor:pointer; font-size:12px;
+}
+
+/* Tables */
+table { width:100%; border-collapse:collapse; font-size:13px; }
+th {
+    background:#f9fafb; color:#6b7280; font-weight:600; font-size:11px;
+    padding:10px 12px; text-align:left; border-bottom:2px solid #e5e7eb;
+    text-transform:uppercase; letter-spacing:0.04em;
+}
+td { padding:10px 12px; border-bottom:1px solid #f3f4f6; color:#374151; vertical-align:middle; }
+tr:last-child td { border-bottom:none; }
+tr:hover td { background:#f9fafb; }
+td input {
+    padding:5px 8px; border:1px solid #93c5fd; border-radius:6px;
+    font-size:13px; width:100%;
+}
+td input:focus { outline:none; border-color:#3b82f6; }
+td input.narrow { width:80px; }
+
+.order-badge {
+    background:#f3f4f6; color:#6b7280; border-radius:4px;
+    padding:2px 8px; font-size:11px; font-weight:700;
+}
+.empty-row td { text-align:center; color:#9ca3af; padding:24px; }
+
+/* Status toast */
+.toast {
+    position:fixed; bottom:24px; right:24px;
+    background:#1f2937; color:white; padding:12px 20px;
+    border-radius:10px; font-size:13px; font-weight:600;
+    box-shadow:0 4px 12px rgba(0,0,0,0.2); z-index:9999;
+    opacity:0; transform:translateY(10px);
+    transition:0.3s; pointer-events:none;
+}
+.toast.show { opacity:1; transform:translateY(0); }
+.toast.success { background:#15803d; }
+.toast.error   { background:#dc2626; }
+
+/* Tab panels */
+.tab-panel { display:none; }
+.tab-panel.active { display:block; }
+
+.hint { font-size:12px; color:#9ca3af; margin-top:6px; }
+</style>
+</head>
+<body>
+
+<div class="sidebar" id="sidebar">
+    <a href="index.html">Dashboard Utama</a>
+    <a href="oee.html">OEE</a>
+    <a href="tonase.html">Tonase</a>
+    <a href="waste.html">Waste</a>
+    <a href="cost-material.html">Cost Material</a>
+    <a href="smartway.html" style="margin-top:20px; border-top:1px solid #374151;">🛠️ Smart Way</a>
+    <a href="baopack.html">📦 Baopack</a>
+    <a href="chingfong.html">⚙️ ChingFong</a>
+    <a href="import-extruder.html">📤 Import Extruder</a>
+    <a href="settings.html">⚙️ Settings</a>
+</div>
+
+<div class="topbar">
+    <span class="menu-btn" onclick="toggleMenu()">☰</span>
+    <h2 style="margin:0;">⚙️ Settings</h2>
+</div>
+
+<div class="main">
+
+    <!-- Tab Bar -->
+    <div class="tab-bar">
+        <button class="tab-btn active" onclick="switchTab('mesin')">🏭 Master Mesin</button>
+        <button class="tab-btn" onclick="switchTab('batas')">🎯 Batas Atas Waste</button>
+        <button class="tab-btn" onclick="switchTab('kemasan')">📦 Master Kemasan</button>
+    </div>
+
+    <!-- ═══════════ TAB 1: MASTER MESIN ═══════════ -->
+    <div class="tab-panel active" id="tab-mesin">
+        <div class="card">
+            <div class="card-title">🏭 Daftar Mesin / Line Produksi</div>
+
+            <!-- Form tambah -->
+            <div class="add-row">
+                <div class="fg">
+                    <label>ID Mesin</label>
+                    <input type="text" id="new-mesin-id" placeholder="cth: LINE_8" style="min-width:120px;">
+                </div>
+                <div class="fg">
+                    <label>Nama Mesin</label>
+                    <input type="text" id="new-mesin-nama" class="wide" placeholder="cth: LINE 8 - FILLING SW (4 MSN)">
+                </div>
+                <div class="fg">
+                    <label>Urutan</label>
+                    <input type="number" id="new-mesin-urutan" class="narrow" placeholder="10" min="1">
+                </div>
+                <div class="fg">
+                    <label>Status</label>
+                    <select id="new-mesin-aktif">
+                        <option value="true">Aktif</option>
+                        <option value="false">Non-aktif</option>
+                    </select>
+                </div>
+                <button class="btn-add" onclick="tambahMesin()">+ Tambah Mesin</button>
+            </div>
+
+            <table id="tbl-mesin">
+                <thead>
+                    <tr>
+                        <th style="width:40px;">No</th>
+                        <th style="width:120px;">ID</th>
+                        <th>Nama Mesin</th>
+                        <th style="width:70px;">Urutan</th>
+                        <th style="width:80px;">Status</th>
+                        <th style="width:110px;">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody id="tbody-mesin">
+                    <tr class="empty-row"><td colspan="6">Memuat...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- ═══════════ TAB 2: BATAS ATAS WASTE ═══════════ -->
+    <div class="tab-panel" id="tab-batas">
+        <div class="card">
+            <div class="card-title">🎯 Batas Atas Waste per Mesin (per Shift)</div>
+            <p class="hint">Nilai batas atas per shift. Total harian = batas × 3 shift. Warna merah di form input jika melebihi batas ini.</p>
+
+            <table id="tbl-batas">
+                <thead>
+                    <tr>
+                        <th>Mesin / Line</th>
+                        <th style="text-align:center;">Kemasan (Kg)</th>
+                        <th style="text-align:center;">SFG (Kg)</th>
+                        <th style="text-align:center;">Karton (Pcs)</th>
+                        <th style="width:80px;">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody id="tbody-batas">
+                    <tr class="empty-row"><td colspan="5">Memuat...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- ═══════════ TAB 3: MASTER KEMASAN ═══════════ -->
+    <div class="tab-panel" id="tab-kemasan">
+        <div class="card">
+            <div class="card-title">📦 Master Kemasan</div>
+
+            <div class="add-row">
+                <div class="fg">
+                    <label>Kode Material</label>
+                    <input type="text" id="new-kem-kode" placeholder="cth: 2100001885" style="min-width:160px;">
+                </div>
+                <div class="fg">
+                    <label>Deskripsi</label>
+                    <input type="text" id="new-kem-desc" class="wide" placeholder="Nama kemasan...">
+                </div>
+                <div class="fg">
+                    <label>Berat (g/m)</label>
+                    <input type="number" id="new-kem-kg" class="narrow" placeholder="46.3" step="0.01">
+                </div>
+                <div class="fg">
+                    <label>Lebar (cm)</label>
+                    <input type="number" id="new-kem-cm" class="narrow" placeholder="14.5" step="0.1">
+                </div>
+                <button class="btn-add" onclick="tambahKemasan()">+ Tambah</button>
+            </div>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width:40px;">No</th>
+                        <th style="width:140px;">Kode Material</th>
+                        <th>Deskripsi</th>
+                        <th style="width:90px; text-align:right;">Berat (g/m)</th>
+                        <th style="width:90px; text-align:right;">Lebar (cm)</th>
+                        <th style="width:80px;">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody id="tbody-kemasan">
+                    <tr class="empty-row"><td colspan="6">Memuat...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL = 'https://bmnhtxalfsfaefacgtpm.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_VItBKenz-q2sYz7MsibODA_nYtLXv9Q';
+const { createClient } = supabase;
+const db = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+function toggleMenu() {
+    const s = document.getElementById('sidebar');
+    s.style.left = s.style.left === '0px' ? '-250px' : '0px';
+}
+
+// ── Tab switch ──
+function switchTab(name) {
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('tab-' + name).classList.add('active');
+    event.target.classList.add('active');
+}
+
+// ── Toast ──
+function showToast(msg, type='success') {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = 'toast show ' + type;
+    setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// ════════════════════════════════
+// TAB 1 — MASTER MESIN
+// ════════════════════════════════
+async function loadMesin() {
+    const { data, error } = await db
+        .from('master_mesin')
+        .select('*')
+        .order('urutan', { ascending: true });
+
+    const tbody = document.getElementById('tbody-mesin');
+    if (error || !data || data.length === 0) {
+        tbody.innerHTML = '<tr class="empty-row"><td colspan="6">Belum ada data mesin</td></tr>';
+        return;
+    }
+
+    tbody.innerHTML = '';
+    data.forEach((m, i) => {
+        const tr = document.createElement('tr');
+        tr.id = 'row-mesin-' + m.id;
+        tr.innerHTML = `
+            <td><span class="order-badge">${i+1}</span></td>
+            <td style="font-family:monospace; font-size:12px; color:#6b7280;">${m.mesin_id}</td>
+            <td style="font-weight:600;">${m.nama}</td>
+            <td style="text-align:center;">${m.urutan}</td>
+            <td>
+                <span style="
+                    background:${m.aktif ? '#d1fae5' : '#f3f4f6'};
+                    color:${m.aktif ? '#065f46' : '#9ca3af'};
+                    padding:2px 8px; border-radius:4px; font-size:11px; font-weight:600;">
+                    ${m.aktif ? 'Aktif' : 'Non-aktif'}
+                </span>
+            </td>
+            <td style="display:flex; gap:6px;">
+                <button class="btn-edit" onclick="editMesin(${m.id}, '${m.mesin_id}', \`${m.nama}\`, ${m.urutan}, ${m.aktif})">✏️ Edit</button>
+                <button class="btn-del" onclick="hapusMesin(${m.id}, '${m.nama}')">🗑</button>
+            </td>
+        `;
+        tbody.appendChild(tr);
+    });
+}
+
+async function tambahMesin() {
+    const mid   = document.getElementById('new-mesin-id').value.trim().toUpperCase().replace(/ /g,'_');
+    const nama  = document.getElementById('new-mesin-nama').value.trim();
+    const urutan= parseInt(document.getElementById('new-mesin-urutan').value) || 99;
+    const aktif = document.getElementById('new-mesin-aktif').value === 'true';
+
+    if (!mid || !nama) { showToast('ID dan Nama wajib diisi', 'error'); return; }
+
+    const { error } = await db.from('master_mesin').insert([{ mesin_id: mid, nama, urutan, aktif }]);
+    if (error) { showToast('Gagal: ' + error.message, 'error'); return; }
+
+    document.getElementById('new-mesin-id').value = '';
+    document.getElementById('new-mesin-nama').value = '';
+    document.getElementById('new-mesin-urutan').value = '';
+    showToast('✅ Mesin berhasil ditambahkan');
+    loadMesin();
+    loadBatas();
+}
+
+function editMesin(id, mid, nama, urutan, aktif) {
+    const row = document.getElementById('row-mesin-' + id);
+    row.innerHTML = `
+        <td colspan="2"></td>
+        <td><input type="text" id="edit-nama-${id}" value="${nama}"></td>
+        <td><input type="number" id="edit-urutan-${id}" value="${urutan}" class="narrow" style="width:60px;"></td>
+        <td>
+            <select id="edit-aktif-${id}" style="padding:4px 8px; border:1px solid #d1d5db; border-radius:6px; font-size:12px;">
+                <option value="true" ${aktif ? 'selected' : ''}>Aktif</option>
+                <option value="false" ${!aktif ? 'selected' : ''}>Non-aktif</option>
+            </select>
+        </td>
+        <td style="display:flex; gap:6px;">
+            <button class="btn-save-inline" onclick="simpanEditMesin(${id})">💾 Simpan</button>
+            <button class="btn-cancel-inline" onclick="loadMesin()">Batal</button>
+        </td>
+    `;
+}
+
+async function simpanEditMesin(id) {
+    const nama   = document.getElementById('edit-nama-' + id).value.trim();
+    const urutan = parseInt(document.getElementById('edit-urutan-' + id).value) || 99;
+    const aktif  = document.getElementById('edit-aktif-' + id).value === 'true';
+
+    const { error } = await db.from('master_mesin').update({ nama, urutan, aktif }).eq('id', id);
+    if (error) { showToast('Gagal: ' + error.message, 'error'); return; }
+    showToast('✅ Mesin diperbarui');
+    loadMesin();
+}
+
+async function hapusMesin(id, nama) {
+    if (!confirm(`Hapus mesin "${nama}"?`)) return;
+    const { error } = await db.from('master_mesin').delete().eq('id', id);
+    if (error) { showToast('Gagal: ' + error.message, 'error'); return; }
+    showToast('🗑 Mesin dihapus');
+    loadMesin();
+    loadBatas();
+}
+
+// ════════════════════════════════
+// TAB 2 — BATAS ATAS WASTE
+// ════════════════════════════════
+async function loadBatas() {
+    const { data: mesinList } = await db
+        .from('master_mesin')
+        .select('*')
+        .eq('aktif', true)
+        .order('urutan');
+
+    const { data: batasList } = await db
+        .from('waste_batas')
+        .select('*');
+
+    const tbody = document.getElementById('tbody-batas');
+    if (!mesinList || mesinList.length === 0) {
+        tbody.innerHTML = '<tr class="empty-row"><td colspan="5">Tambah mesin dulu di tab Master Mesin</td></tr>';
+        return;
+    }
+
+    // Map batas by mesin_id
+    const batasMap = {};
+    (batasList || []).forEach(b => { batasMap[b.mesin_id] = b; });
+
+    tbody.innerHTML = '';
+    mesinList.forEach(m => {
+        const b = batasMap[m.mesin_id] || { batas_kemasan: 0, batas_sfg: 0, batas_karton: 0 };
+        const tr = document.createElement('tr');
+        tr.id = 'row-batas-' + m.mesin_id;
+        tr.dataset.mid = m.mesin_id;
+        tr.dataset.bid = b.id || '';
+        tr.innerHTML = `
+            <td style="font-weight:600;">${m.nama}</td>
+            <td style="text-align:center;">
+                <span class="batas-view-kemasan">${b.batas_kemasan ?? 0}</span>
+            </td>
+            <td style="text-align:center;">
+                <span class="batas-view-sfg">${b.batas_sfg ?? 0}</span>
+            </td>
+            <td style="text-align:center;">
+                <span class="batas-view-karton">${b.batas_karton ?? 0}</span>
+            </td>
+            <td>
+                <button class="btn-edit" onclick="editBatas('${m.mesin_id}', '${m.nama}', ${b.batas_kemasan??0}, ${b.batas_sfg??0}, ${b.batas_karton??0}, '${b.id||''}')">✏️ Edit</button>
+            </td>
+        `;
+        tbody.appendChild(tr);
+    });
+
+    // Baris total
+    const totK = (batasList||[]).reduce((s,b)=>s+(b.batas_kemasan||0),0);
+    const totS = (batasList||[]).reduce((s,b)=>s+(b.batas_sfg||0),0);
+    const totC = (batasList||[]).reduce((s,b)=>s+(b.batas_karton||0),0);
+    const trTot = document.createElement('tr');
+    trTot.style.background = '#f9fafb';
+    trTot.innerHTML = `
+        <td style="font-weight:700; color:#374151;">TOTAL per Shift</td>
+        <td style="text-align:center; font-weight:700;">${totK.toFixed(3)} Kg</td>
+        <td style="text-align:center; font-weight:700;">${totS.toFixed(3)} Kg</td>
+        <td style="text-align:center; font-weight:700;">${totC.toFixed(1)} Pcs</td>
+        <td></td>
+    `;
+    tbody.appendChild(trTot);
+}
+
+function editBatas(mid, nama, k, s, c, bid) {
+    const row = document.getElementById('row-batas-' + mid);
+    row.innerHTML = `
+        <td style="font-weight:600; color:#374151;">${nama}</td>
+        <td style="text-align:center;">
+            <input type="number" id="eb-k-${mid}" value="${k}" step="0.001" style="width:80px; text-align:right; padding:5px 8px; border:1px solid #93c5fd; border-radius:6px; font-size:13px;">
+        </td>
+        <td style="text-align:center;">
+            <input type="number" id="eb-s-${mid}" value="${s}" step="0.001" style="width:80px; text-align:right; padding:5px 8px; border:1px solid #93c5fd; border-radius:6px; font-size:13px;">
+        </td>
+        <td style="text-align:center;">
+            <input type="number" id="eb-c-${mid}" value="${c}" step="1" style="width:80px; text-align:right; padding:5px 8px; border:1px solid #93c5fd; border-radius:6px; font-size:13px;">
+        </td>
+        <td style="display:flex; gap:4px; flex-wrap:wrap;">
+            <button class="btn-save-inline" onclick="simpanBatas('${mid}','${bid}')">💾</button>
+            <button class="btn-cancel-inline" onclick="loadBatas()">✕</button>
+        </td>
+    `;
+}
+
+async function simpanBatas(mid, bid) {
+    const k = parseFloat(document.getElementById('eb-k-' + mid).value) || 0;
+    const s = parseFloat(document.getElementById('eb-s-' + mid).value) || 0;
+    const c = parseFloat(document.getElementById('eb-c-' + mid).value) || 0;
+
+    const payload = { mesin_id: mid, batas_kemasan: k, batas_sfg: s, batas_karton: c };
+
+    let error;
+    if (bid) {
+        ({ error } = await db.from('waste_batas').update(payload).eq('id', bid));
+    } else {
+        ({ error } = await db.from('waste_batas').insert([payload]));
+    }
+    if (error) { showToast('Gagal: ' + error.message, 'error'); return; }
+    showToast('✅ Batas atas disimpan');
+    loadBatas();
+}
+
+// ════════════════════════════════
+// TAB 3 — MASTER KEMASAN
+// ════════════════════════════════
+async function loadKemasan() {
+    const { data, error } = await db
+        .from('master_kemasan')
+        .select('*')
+        .order('id', { ascending: true });
+
+    const tbody = document.getElementById('tbody-kemasan');
+    if (error || !data || data.length === 0) {
+        tbody.innerHTML = '<tr class="empty-row"><td colspan="6">Belum ada data kemasan</td></tr>';
+        return;
+    }
+
+    tbody.innerHTML = '';
+    data.forEach((k, i) => {
+        const tr = document.createElement('tr');
+        tr.id = 'row-kem-' + k.id;
+        tr.innerHTML = `
+            <td>${i+1}</td>
+            <td style="font-family:monospace; font-size:12px;">${k.kode_material}</td>
+            <td>${k.deskripsi}</td>
+            <td style="text-align:right;">${k.berat_gram_per_m ?? '—'}</td>
+            <td style="text-align:right;">${k.lebar_cm ?? '—'}</td>
+            <td style="display:flex; gap:6px;">
+                <button class="btn-edit" onclick="editKemasan(${k.id}, '${k.kode_material}', \`${k.deskripsi}\`, ${k.berat_gram_per_m??0}, ${k.lebar_cm??0})">✏️</button>
+                <button class="btn-del" onclick="hapusKemasan(${k.id})">🗑</button>
+            </td>
+        `;
+        tbody.appendChild(tr);
+    });
+}
+
+async function tambahKemasan() {
+    const kode = document.getElementById('new-kem-kode').value.trim();
+    const desc = document.getElementById('new-kem-desc').value.trim();
+    const kg   = parseFloat(document.getElementById('new-kem-kg').value) || null;
+    const cm   = parseFloat(document.getElementById('new-kem-cm').value) || null;
+
+    if (!kode || !desc) { showToast('Kode dan Deskripsi wajib diisi', 'error'); return; }
+
+    const { error } = await db.from('master_kemasan').insert([{
+        kode_material: kode, deskripsi: desc, berat_gram_per_m: kg, lebar_cm: cm
+    }]);
+    if (error) { showToast('Gagal: ' + error.message, 'error'); return; }
+
+    ['new-kem-kode','new-kem-desc','new-kem-kg','new-kem-cm'].forEach(id => {
+        document.getElementById(id).value = '';
+    });
+    showToast('✅ Kemasan ditambahkan');
+    loadKemasan();
+}
+
+function editKemasan(id, kode, desc, kg, cm) {
+    const row = document.getElementById('row-kem-' + id);
+    row.innerHTML = `
+        <td></td>
+        <td style="font-family:monospace; font-size:12px;">${kode}</td>
+        <td><input type="text" id="ek-desc-${id}" value="${desc}"></td>
+        <td><input type="number" id="ek-kg-${id}" value="${kg}" step="0.01" style="width:80px; text-align:right; padding:5px 8px; border:1px solid #93c5fd; border-radius:6px; font-size:13px;"></td>
+        <td><input type="number" id="ek-cm-${id}" value="${cm}" step="0.1" style="width:80px; text-align:right; padding:5px 8px; border:1px solid #93c5fd; border-radius:6px; font-size:13px;"></td>
+        <td style="display:flex; gap:4px;">
+            <button class="btn-save-inline" onclick="simpanKemasan(${id})">💾</button>
+            <button class="btn-cancel-inline" onclick="loadKemasan()">✕</button>
+        </td>
+    `;
+}
+
+async function simpanKemasan(id) {
+    const desc = document.getElementById('ek-desc-' + id).value.trim();
+    const kg   = parseFloat(document.getElementById('ek-kg-' + id).value) || null;
+    const cm   = parseFloat(document.getElementById('ek-cm-' + id).value) || null;
+
+    const { error } = await db.from('master_kemasan').update({
+        deskripsi: desc, berat_gram_per_m: kg, lebar_cm: cm
+    }).eq('id', id);
+    if (error) { showToast('Gagal: ' + error.message, 'error'); return; }
+    showToast('✅ Kemasan diperbarui');
+    loadKemasan();
+}
+
+async function hapusKemasan(id) {
+    if (!confirm('Hapus kemasan ini?')) return;
+    const { error } = await db.from('master_kemasan').delete().eq('id', id);
+    if (error) { showToast('Gagal: ' + error.message, 'error'); return; }
+    showToast('🗑 Kemasan dihapus');
+    loadKemasan();
+}
+
+// ── Init ──
+loadMesin();
+loadBatas();
+loadKemasan();
+</script>
+</body>
+</html>

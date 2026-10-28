@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Improvement Monitoring - Bojonegoro</title>
+<style>
+* { box-sizing: border-box; }
+body { margin:0; font-family:Arial, sans-serif; background:#f3f4f6; color:#1f2937; }
+.topbar {
+    background:#1f2937; color:white; padding:15px;
+    display:flex; align-items:center;
+    position:fixed; top:0; left:0; width:100%; z-index:1000;
+}
+.menu-btn { font-size:28px; cursor:pointer; margin-right:15px; }
+.sidebar {
+    height:100%; width:250px; position:fixed;
+    top:0; left:-250px; background:#111827;
+    transition:0.3s; padding-top:60px; z-index:999;
+}
+.sidebar a { display:block; color:white; padding:15px 20px; text-decoration:none; }
+.sidebar a:hover { background:#374151; }
+.sidebar a.active { background:#3b82f6; }
+.main { padding:84px 24px 40px; max-width:1500px; margin:0 auto; }
+
+.page-header {
+    display:flex; justify-content:space-between; align-items:flex-start;
+    gap:16px; margin-bottom:20px; flex-wrap:wrap;
+}
+.page-title { margin:0 0 5px; font-size:24px; }
+.page-subtitle { margin:0; color:#6b7280; font-size:13px; }
+
+.summary-grid {
+    display:grid; grid-template-columns:repeat(4, minmax(160px, 1fr));
+    gap:14px; margin-bottom:20px;
+}
+.summary-card {
+    background:white; border-radius:12px; padding:18px;
+    box-shadow:0 1px 3px rgba(0,0,0,0.08);
+}
+.summary-label { font-size:11px; color:#6b7280; text-transform:uppercase; letter-spacing:.05em; font-weight:700; }
+.summary-value { font-size:27px; font-weight:800; margin-top:7px; }
+.summary-note { font-size:11px; color:#9ca3af; margin-top:3px; }
+
+.card {
+    background:white; border-radius:12px; padding:22px;
+    box-shadow:0 1px 3px rgba(0,0,0,0.08); margin-bottom:20px;
+}
+.card-title { font-size:15px; font-weight:700; margin:0 0 16px; }
+
+.form-grid {
+    display:grid; grid-template-columns:2fr repeat(2, minmax(150px, 1fr)) 1.1fr 1fr;
+    gap:12px; align-items:end;
+}
+.fg { display:flex; flex-direction:column; gap:5px; }
+.fg.full { grid-column:1 / -1; }
+.fg label { font-size:11px; color:#6b7280; font-weight:700; text-transform:uppercase; letter-spacing:.04em; }
+.fg input, .fg select, .fg textarea {
+    width:100%; padding:9px 11px; border:1px solid #d1d5db;
+    border-radius:8px; font-size:13px; color:#1f2937; background:white;
+}
+.fg textarea { min-height:72px; resize:vertical; }
+.fg input:focus, .fg select:focus, .fg textarea:focus {
+    outline:none; border-color:#3b82f6; box-shadow:0 0 0 2px #dbeafe;
+}
+.progress-input-wrap { display:flex; gap:8px; align-items:center; }
+.progress-input-wrap input[type="range"] { padding:0; }
+.progress-number { width:75px !important; text-align:right; }
+.form-actions { display:flex; justify-content:flex-end; gap:8px; margin-top:14px; }
+
+.btn {
+    border:none; border-radius:8px; padding:9px 15px; cursor:pointer;
+    font-size:13px; font-weight:700; white-space:nowrap;
+}
+.btn-primary { background:#1f2937; color:white; }
+.btn-primary:hover { background:#374151; }
+.btn-secondary { background:#f3f4f6; color:#4b5563; }
+.btn-secondary:hover { background:#e5e7eb; }
+.btn-edit { background:#eff6ff; color:#2563eb; border:1px solid #bfdbfe; padding:5px 10px; border-radius:6px; cursor:pointer; }
+.btn-delete { background:#fff5f5; color:#dc2626; border:1px solid #fecaca; padding:5px 10px; border-radius:6px; cursor:pointer; }
+
+.toolbar {
+    display:flex; justify-content:space-between; gap:12px; align-items:end;
+    margin-bottom:14px; flex-wrap:wrap;
+}
+.filters { display:flex; gap:10px; flex-wrap:wrap; }
+.filters .fg input, .filters .fg select { min-width:160px; }
+.result-count { color:#6b7280; font-size:12px; }
+.table-wrap { overflow:auto; border:1px solid #eef0f3; border-radius:10px; }
+table { width:100%; border-collapse:collapse; font-size:13px; min-width:1100px; }
+th {
+    background:#f9fafb; color:#6b7280; font-size:11px; font-weight:700;
+    text-align:left; padding:11px 12px; border-bottom:2px solid #e5e7eb;
+    text-transform:uppercase; letter-spacing:.04em; white-space:nowrap;
+}
+td { padding:11px 12px; border-bottom:1px solid #f3f4f6; vertical-align:top; color:#374151; }
+tr:last-child td { border-bottom:none; }
+tr:hover td { background:#fafafa; }
+.project-name { font-weight:700; min-width:200px; }
+.notes { color:#6b7280; font-size:12px; margin-top:4px; max-width:280px; white-space:pre-wrap; }
+.badge { display:inline-flex; align-items:center; border-radius:999px; padding:3px 9px; font-size:11px; font-weight:700; white-space:nowrap; }
+.badge-not-started { background:#f3f4f6; color:#6b7280; }
+.badge-progress { background:#dbeafe; color:#1d4ed8; }
+.badge-completed { background:#d1fae5; color:#065f46; }
+.badge-overdue { background:#fee2e2; color:#b91c1c; }
+.progress-bar { height:8px; min-width:120px; background:#e5e7eb; border-radius:999px; overflow:hidden; margin-top:5px; }
+.progress-fill { height:100%; background:#3b82f6; border-radius:999px; }
+.progress-fill.done { background:#16a34a; }
+.actions { display:flex; gap:6px; }
+.empty-row td { text-align:center; color:#9ca3af; padding:30px; }
+
+.toast {
+    position:fixed; bottom:24px; right:24px; background:#1f2937; color:white;
+    padding:12px 20px; border-radius:10px; font-size:13px; font-weight:700;
+    box-shadow:0 4px 12px rgba(0,0,0,.2); z-index:9999;
+    opacity:0; transform:translateY(10px); transition:.3s; pointer-events:none;
+}
+.toast.show { opacity:1; transform:translateY(0); }
+.toast.success { background:#15803d; }
+.toast.error { background:#dc2626; }
+
+@media (max-width:1000px) {
+    .summary-grid { grid-template-columns:repeat(2, minmax(150px, 1fr)); }
+    .form-grid { grid-template-columns:1fr 1fr; }
+}
+@media (max-width:620px) {
+    .main { padding-left:14px; padding-right:14px; }
+    .summary-grid, .form-grid { grid-template-columns:1fr; }
+    .fg.full { grid-column:auto; }
+}
+</style>
+</head>
+<body>
+
+<div class="sidebar" id="sidebar">
+    <a href="index.html">Dashboard Utama</a>
+    <a href="oee.html">OEE</a>
+    <a href="tonase.html">Tonase</a>
+    <a href="waste.html">Waste</a>
+    <a href="cost-material.html">Cost Material</a>
+    <a href="improvement-monitoring.html">Improvement Monitoring</a>
+    <a href="smartway.html" style="margin-top:20px; border-top:1px solid #374151;">🛠️ Smart Way</a>
+    <a href="baopack.html">📦 Baopack</a>
+    <a href="chingfong.html">⚙️ ChingFong</a>
+    <a href="import-extruder.html">📤 Import Extruder</a>
+    <a href="settings.html">⚙️ Settings</a>
+</div>
+
+<div class="topbar">
+    <span class="menu-btn" onclick="toggleMenu()">☰</span>
+    <h2 style="margin:0;">📈 Improvement Monitoring</h2>
+</div>
+
+<main class="main">
+    <div class="page-header">
+        <div>
+            <h1 class="page-title">Monitoring Project & Improvement</h1>
+            <p class="page-subtitle">Pantau timeline, realisasi, PIC, dan progres setiap improvement.</p>
+        </div>
+        <button class="btn btn-primary" onclick="focusForm()">+ Tambah Improvement</button>
+    </div>
+
+    <section class="summary-grid">
+        <div class="summary-card">
+            <div class="summary-label">Total Project</div>
+            <div class="summary-value" id="sum-total">0</div>
+            <div class="summary-note">Seluruh improvement</div>
+        </div>
+        <div class="summary-card">
+            <div class="summary-label">On Progress</div>
+            <div class="summary-value" id="sum-progress">0</div>
+            <div class="summary-note">Sedang dikerjakan</div>
+        </div>
+        <div class="summary-card">
+            <div class="summary-label">Selesai</div>
+            <div class="summary-value" id="sum-completed">0</div>
+            <div class="summary-note">Progres 100%</div>
+        </div>
+        <div class="summary-card">
+            <div class="summary-label">Terlambat</div>
+            <div class="summary-value" id="sum-overdue">0</div>
+            <div class="summary-note">Lewat target selesai</div>
+        </div>
+    </section>
+
+    <section class="card" id="form-card">
+        <h2 class="card-title" id="form-title">➕ Tambah Improvement</h2>
+        <form id="improvement-form" onsubmit="saveImprovement(event)">
+            <input type="hidden" id="edit-id">
+            <div class="form-grid">
+                <div class="fg">
+                    <label for="project-name">Nama Project / Improvement *</label>
+                    <input type="text" id="project-name" placeholder="Contoh: Reduksi Waste Kemasan Line 3" required maxlength="200">
+                </div>
+                <div class="fg">
+                    <label for="timeline-start">Mulai Timeline *</label>
+                    <input type="date" id="timeline-start" required>
+                </div>
+                <div class="fg">
+                    <label for="timeline-end">Target Selesai *</label>
+                    <input type="date" id="timeline-end" required>
+                </div>
+                <div class="fg">
+                    <label for="realization-date">Tanggal Realisasi</label>
+                    <input type="date" id="realization-date">
+                </div>
+                <div class="fg">
+                    <label for="pic">PIC *</label>
+                    <input type="text" id="pic" placeholder="Nama PIC" required maxlength="120">
+                </div>
+                <div class="fg full">
+                    <label for="progress-range">Progres (%)</label>
+                    <div class="progress-input-wrap">
+                        <input type="range" id="progress-range" min="0" max="100" step="5" value="0" oninput="syncProgress('range')">
+                        <input type="number" id="progress-number" class="progress-number" min="0" max="100" value="0" oninput="syncProgress('number')">
+                    </div>
+                </div>
+                <div class="fg full">
+                    <label for="notes">Catatan / Realisasi</label>
+                    <textarea id="notes" placeholder="Tuliskan update pekerjaan, hasil realisasi, kendala, atau tindak lanjut..."></textarea>
+                </div>
+            </div>
+            <div class="form-actions">
+                <button type="button" class="btn btn-secondary" id="btn-cancel" onclick="resetForm()" style="display:none;">Batal</button>
+                <button type="submit" class="btn btn-primary" id="btn-save">Simpan Improvement</button>
+            </div>
+        </form>
+    </section>
+
+    <section class="card">
+        <div class="toolbar">
+            <div class="filters">
+                <div class="fg">
+                    <label for="search-input">Cari</label>
+                    <input type="search" id="search-input" placeholder="Project atau PIC..." oninput="renderTable()">
+                </div>
+                <div class="fg">
+                    <label for="status-filter">Status</label>
+                    <select id="status-filter" onchange="renderTable()">
+                        <option value="all">Semua status</option>
+                        <option value="not-started">Belum Mulai</option>
+                        <option value="in-progress">On Progress</option>
+                        <option value="completed">Selesai</option>
+                        <option value="overdue">Terlambat</option>
+                    </select>
+                </div>
+                <div class="fg">
+                    <label for="pic-filter">PIC</label>
+                    <select id="pic-filter" onchange="renderTable()">
+                        <option value="all">Semua PIC</option>
+                    </select>
+                </div>
+            </div>
+            <div class="result-count" id="result-count">0 data</div>
+        </div>
+
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width:45px;">No</th>
+                        <th>Project / Improvement</th>
+                        <th>PIC</th>
+                        <th>Timeline</th>
+                        <th>Realisasi</th>
+                        <th>Progres</th>
+                        <th>Status</th>
+                        <th style="width:110px;">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody id="improvement-body">
+                    <tr class="empty-row"><td colspan="8">Memuat data...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL = 'https://bmnhtxalfsfaefacgtpm.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_VItBKenz-q2sYz7MsibODA_nYtLXv9Q';
+const { createClient } = supabase;
+const db = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+let improvementData = [];
+
+function toggleMenu() {
+    const sidebar = document.getElementById('sidebar');
+    sidebar.style.left = sidebar.style.left === '0px' ? '-250px' : '0px';
+}
+
+function showToast(message, type = 'success') {
+    const toast = document.getElementById('toast');
+    toast.textContent = message;
+    toast.className = 'toast show ' + type;
+    setTimeout(() => toast.classList.remove('show'), 3000);
+}
+
+function escapeHtml(value) {
+    return String(value ?? '')
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#039;');
+}
+
+function formatDate(value) {
+    if (!value) return '—';
+    const date = new Date(value + 'T00:00:00');
+    return new Intl.DateTimeFormat('id-ID', {
+        day: '2-digit', month: 'short', year: 'numeric'
+    }).format(date);
+}
+
+function syncProgress(source) {
+    const range = document.getElementById('progress-range');
+    const number = document.getElementById('progress-number');
+    if (source === 'range') number.value = range.value;
+    else {
+        const safeValue = Math.min(100, Math.max(0, Number(number.value) || 0));
+        number.value = safeValue;
+        range.value = safeValue;
+    }
+}
+
+function getStatus(item) {
+    const progress = Number(item.progress) || 0;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const target = item.timeline_end ? new Date(item.timeline_end + 'T00:00:00') : null;
+
+    if (progress >= 100) return { key:'completed', label:'Selesai', cls:'badge-completed' };
+    if (target && target < today) return { key:'overdue', label:'Terlambat', cls:'badge-overdue' };
+    if (progress > 0) return { key:'in-progress', label:'On Progress', cls:'badge-progress' };
+    return { key:'not-started', label:'Belum Mulai', cls:'badge-not-started' };
+}
+
+async function loadImprovements() {
+    const body = document.getElementById('improvement-body');
+    body.innerHTML = '<tr class="empty-row"><td colspan="8">Memuat data...</td></tr>';
+
+    const { data, error } = await db
+        .from('improvement_monitoring')
+        .select('*')
+        .order('timeline_end', { ascending:true })
+        .order('created_at', { ascending:false });
+
+    if (error) {
+        body.innerHTML = '<tr class="empty-row"><td colspan="8">Gagal memuat data. Pastikan tabel improvement_monitoring sudah dibuat.</td></tr>';
+        showToast('Gagal memuat data: ' + error.message, 'error');
+        return;
+    }
+
+    improvementData = data || [];
+    refreshPicFilter();
+    updateSummary();
+    renderTable();
+}
+
+function refreshPicFilter() {
+    const select = document.getElementById('pic-filter');
+    const previous = select.value;
+    const pics = [...new Set(improvementData.map(item => item.pic).filter(Boolean))]
+        .sort((a, b) => a.localeCompare(b, 'id'));
+
+    select.innerHTML = '<option value="all">Semua PIC</option>' +
+        pics.map(pic => `<option value="${escapeHtml(pic)}">${escapeHtml(pic)}</option>`).join('');
+
+    if (pics.includes(previous)) select.value = previous;
+}
+
+function updateSummary() {
+    const statuses = improvementData.map(getStatus);
+    document.getElementById('sum-total').textContent = improvementData.length;
+    document.getElementById('sum-progress').textContent = statuses.filter(s => s.key === 'in-progress').length;
+    document.getElementById('sum-completed').textContent = statuses.filter(s => s.key === 'completed').length;
+    document.getElementById('sum-overdue').textContent = statuses.filter(s => s.key === 'overdue').length;
+}
+
+function renderTable() {
+    const body = document.getElementById('improvement-body');
+    const search = document.getElementById('search-input').value.trim().toLowerCase();
+    const statusFilter = document.getElementById('status-filter').value;
+    const picFilter = document.getElementById('pic-filter').value;
+
+    const filtered = improvementData.filter(item => {
+        const status = getStatus(item);
+        const matchesSearch = !search ||
+            String(item.project_name || '').toLowerCase().includes(search) ||
+            String(item.pic || '').toLowerCase().includes(search) ||
+            String(item.notes || '').toLowerCase().includes(search);
+        const matchesStatus = statusFilter === 'all' || status.key === statusFilter;
+        const matchesPic = picFilter === 'all' || item.pic === picFilter;
+        return matchesSearch && matchesStatus && matchesPic;
+    });
+
+    document.getElementById('result-count').textContent = `${filtered.length} dari ${improvementData.length} data`;
+
+    if (filtered.length === 0) {
+        body.innerHTML = '<tr class="empty-row"><td colspan="8">Tidak ada data yang sesuai.</td></tr>';
+        return;
+    }
+
+    body.innerHTML = filtered.map((item, index) => {
+        const status = getStatus(item);
+        const progress = Math.min(100, Math.max(0, Number(item.progress) || 0));
+        return `
+            <tr>
+                <td>${index + 1}</td>
+                <td>
+                    <div class="project-name">${escapeHtml(item.project_name)}</div>
+                    ${item.notes ? `<div class="notes">${escapeHtml(item.notes)}</div>` : ''}
+                </td>
+                <td>${escapeHtml(item.pic)}</td>
+                <td>
+                    <div>${formatDate(item.timeline_start)}</div>
+                    <div style="color:#9ca3af; font-size:11px; margin-top:3px;">s.d. ${formatDate(item.timeline_end)}</div>
+                </td>
+                <td>${formatDate(item.realization_date)}</td>
+                <td>
+                    <strong>${progress}%</strong>
+                    <div class="progress-bar"><div class="progress-fill ${progress >= 100 ? 'done' : ''}" style="width:${progress}%"></div></div>
+                </td>
+                <td><span class="badge ${status.cls}">${status.label}</span></td>
+                <td>
+                    <div class="actions">
+                        <button class="btn-edit" onclick="editImprovement('${item.id}')" title="Edit">✏️</button>
+                        <button class="btn-delete" onclick="deleteImprovement('${item.id}')" title="Hapus">🗑</button>
+                    </div>
+                </td>
+            </tr>
+        `;
+    }).join('');
+}
+
+function focusForm() {
+    document.getElementById('form-card').scrollIntoView({ behavior:'smooth', block:'start' });
+    setTimeout(() => document.getElementById('project-name').focus(), 350);
+}
+
+async function saveImprovement(event) {
+    event.preventDefault();
+
+    const id = document.getElementById('edit-id').value;
+    const projectName = document.getElementById('project-name').value.trim();
+    const timelineStart = document.getElementById('timeline-start').value;
+    const timelineEnd = document.getElementById('timeline-end').value;
+    const realizationDate = document.getElementById('realization-date').value || null;
+    const pic = document.getElementById('pic').value.trim();
+    const progress = Math.min(100, Math.max(0, Number(document.getElementById('progress-number').value) || 0));
+    const notes = document.getElementById('notes').value.trim() || null;
+
+    if (!projectName || !timelineStart || !timelineEnd || !pic) {
+        showToast('Nama project, timeline, dan PIC wajib diisi.', 'error');
+        return;
+    }
+    if (timelineEnd < timelineStart) {
+        showToast('Target selesai tidak boleh sebelum tanggal mulai.', 'error');
+        return;
+    }
+
+    const payload = {
+        project_name: projectName,
+        timeline_start: timelineStart,
+        timeline_end: timelineEnd,
+        realization_date: realizationDate,
+        pic,
+        progress,
+        notes,
+        updated_at: new Date().toISOString()
+    };
+
+    const saveButton = document.getElementById('btn-save');
+    saveButton.disabled = true;
+    saveButton.textContent = 'Menyimpan...';
+
+    let error;
+    if (id) {
+        ({ error } = await db.from('improvement_monitoring').update(payload).eq('id', id));
+    } else {
+        ({ error } = await db.from('improvement_monitoring').insert([payload]));
+    }
+
+    saveButton.disabled = false;
+    saveButton.textContent = id ? 'Simpan Perubahan' : 'Simpan Improvement';
+
+    if (error) {
+        showToast('Gagal menyimpan: ' + error.message, 'error');
+        return;
+    }
+
+    showToast(id ? '✅ Improvement diperbarui' : '✅ Improvement ditambahkan');
+    resetForm();
+    await loadImprovements();
+}
+
+function editImprovement(id) {
+    const item = improvementData.find(row => String(row.id) === String(id));
+    if (!item) return;
+
+    document.getElementById('edit-id').value = item.id;
+    document.getElementById('project-name').value = item.project_name || '';
+    document.getElementById('timeline-start').value = item.timeline_start || '';
+    document.getElementById('timeline-end').value = item.timeline_end || '';
+    document.getElementById('realization-date').value = item.realization_date || '';
+    document.getElementById('pic').value = item.pic || '';
+    document.getElementById('progress-range').value = Number(item.progress) || 0;
+    document.getElementById('progress-number').value = Number(item.progress) || 0;
+    document.getElementById('notes').value = item.notes || '';
+
+    document.getElementById('form-title').textContent = '✏️ Edit Improvement';
+    document.getElementById('btn-save').textContent = 'Simpan Perubahan';
+    document.getElementById('btn-cancel').style.display = 'inline-block';
+    focusForm();
+}
+
+function resetForm() {
+    document.getElementById('improvement-form').reset();
+    document.getElementById('edit-id').value = '';
+    document.getElementById('progress-range').value = 0;
+    document.getElementById('progress-number').value = 0;
+    document.getElementById('form-title').textContent = '➕ Tambah Improvement';
+    document.getElementById('btn-save').textContent = 'Simpan Improvement';
+    document.getElementById('btn-cancel').style.display = 'none';
+}
+
+async function deleteImprovement(id) {
+    const item = improvementData.find(row => String(row.id) === String(id));
+    if (!item) return;
+    if (!confirm(`Hapus improvement "${item.project_name}"?`)) return;
+
+    const { error } = await db.from('improvement_monitoring').delete().eq('id', id);
+    if (error) {
+        showToast('Gagal menghapus: ' + error.message, 'error');
+        return;
+    }
+
+    showToast('🗑 Improvement dihapus');
+    await loadImprovements();
+}
+
+loadImprovements();
+</script>
+</body>
+</html>
